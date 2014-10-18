@@ -9,11 +9,16 @@ using System.Windows.Forms;
 
 namespace TimeTracker.Windows
 {
-    public partial class MainForm : Form
+    public partial class LoginForm : Form
     {
-        public MainForm()
+        public LoginForm()
         {
             InitializeComponent();
+        }
+
+        private void buttonLogin_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
