@@ -18,7 +18,7 @@ namespace TimeTracker.Backend.Controllers
 
         // GET api/Category
         public IEnumerable<Category> GetCategories()
-        {
+        {   
             var categories = db.Categories.Include(c => c.Consumer);
             return categories.AsEnumerable();
         }

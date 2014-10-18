@@ -8,25 +8,31 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using TimeTracker.Backend.Filters;
 using TimeTracker.Backend.Models;
 
 namespace TimeTracker.Backend.Controllers
 {
-    public class GoalController : ApiController
+    public class GoalController : ApiControllerBase
     {
         private TimeTrackerContext db = new TimeTrackerContext();
 
         // GET api/Goal
+        [AuthorizeToken]
         public IEnumerable<Goal> GetGoals()
         {
-            var goals = db.Goals.Include(g => g.Consumer).Include(g => g.Category);
+            Guid consumerId = CurrentUserConsumerId.Value;
+            var goals = db.Goals.ForConsumer(consumerId);
             return goals.AsEnumerable();
         }
 
         // GET api/Goal/5
+        [AuthorizeToken]
         public Goal GetGoal(Guid id)
         {
-            Goal goal = db.Goals.Find(id);
+            Guid consumerId = CurrentUserConsumerId.Value;
+
+            Goal goal = db.Goals.ForConsumer(consumerId).SingleOrDefault();
             if (goal == null)
             {
                 throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
@@ -35,39 +41,61 @@ namespace TimeTracker.Backend.Controllers
             return goal;
         }
 
-        // PUT api/Goal/5
-        public HttpResponseMessage PutGoal(Guid id, Goal goal)
-        {
-            if (!ModelState.IsValid)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
-            }
+        //// PUT api/Goal/5
+        //[AuthorizeToken]
+        //public HttpResponseMessage PutGoal(Guid id, Goal goal)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+        //    }
 
-            if (id != goal.Id)
-            {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
-            }
+        //    if (id != goal.Id)
+        //    {
+        //        return Request.CreateResponse(HttpStatusCode.BadRequest);
+        //    }
 
-            db.Entry(goal).State = EntityState.Modified;
+        //    db.Entry(goal).State = EntityState.Modified;
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
-            }
+        //    try
+        //    {
+        //        db.SaveChanges();
+        //    }
+        //    catch (DbUpdateConcurrencyException ex)
+        //    {
+        //        return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
+        //    }
 
-            return Request.CreateResponse(HttpStatusCode.OK);
-        }
+        //    return Request.CreateResponse(HttpStatusCode.OK);
+        //}
 
         // POST api/Goal
-        public HttpResponseMessage PostGoal(Goal goal)
+        [AuthorizeToken]
+        public HttpResponseMessage PostGoal(GoalUpdateDTO goalDTO)
         {
+            Guid consumerId = CurrentUserConsumerId.Value;
+
             if (ModelState.IsValid)
             {
-                db.Goals.Add(goal);
+                var goal = new Goal();
+                AutoMapper.Mapper.Map(goalDTO, goal);
+ 
+                goal.ConsumerId = consumerId;
+
+                goal.Category = db.Categories.SingleOrDefault(c => c.Id == goalDTO.CategoryId);
+                if (goal.Category != null)
+                {
+                    goal.CategoryId = goal.Category.Id;
+                }
+
+                if (db.Goals.Count(s => s.Id == goal.Id) != 0)
+                {
+                    db.Entry(goal).State = EntityState.Modified;
+                }
+                else
+                {
+                    db.Goals.Add(goal);
+                }
                 db.SaveChanges();
 
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, goal);
@@ -81,6 +109,7 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // DELETE api/Goal/5
+        [AuthorizeToken]
         public HttpResponseMessage DeleteGoal(Guid id)
         {
             Goal goal = db.Goals.Find(id);
