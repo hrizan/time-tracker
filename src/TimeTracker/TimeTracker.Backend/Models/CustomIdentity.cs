@@ -8,9 +8,9 @@ namespace TimeTracker.Backend.Models
 {
     public class CustomIdentity : GenericIdentity
     {
-        public Guid ConsumerId { get; private set; }
+        public Guid? ConsumerId { get; private set; }
 
-        public CustomIdentity(string username, Guid consumerId):base(username)
+        public CustomIdentity(string username, Guid? consumerId):base(username)
         {
             ConsumerId = consumerId;
         }

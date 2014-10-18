@@ -13,6 +13,7 @@ namespace TimeTracker.Backend.Helpers
         public static void CreateMappings()
         {
             Mapper.CreateMap<Activity, ActivityUpdateDto>();
+            Mapper.CreateMap<ActivityUpdateDto, Activity>();
             //====================SAMPLE MAPPINGS
 
             //Items mapping

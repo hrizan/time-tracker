@@ -69,16 +69,7 @@ namespace TimeTracker.Backend.Models
         public int UserId { get; set; }
         public string UserName { get; set; }
         public string AuthToken { get; set; }
-        public Guid ConsumerId { get; set; }
-    }
-
-    public class UserProfileWithDeviceDto
-    {
-        public int UserId { get; set; }
-        public string UserName { get; set; }
-        public string AuthToken { get; set; }
-        public Guid ConsumerId { get; set; }
-        public Guid DeviceId { get; set; }
+        public Guid? ConsumerId { get; set; }
     }
 
     public class RegisterExternalLoginModel
@@ -183,7 +174,7 @@ namespace TimeTracker.Backend.Models
 
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        //[Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
 
         public int Sex { get; set; }

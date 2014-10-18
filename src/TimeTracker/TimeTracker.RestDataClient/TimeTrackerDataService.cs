@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TimeTracker.Backend.Models;
 using TimeTracker.Models;
 
 namespace TimeTracker.RestDataClient
@@ -39,6 +40,36 @@ namespace TimeTracker.RestDataClient
                 }
             }
 
+            #region Login with device
+            public void LoginWithDeviceAsync(LoginModelWithDevice loginModel, Action<IRestResponse<UserProfileWithDeviceDto>> callback)
+            {
+                RestClient client = new RestClient(_apiUrl);
+                var request = PrepareLoginWithDeviceRequest(loginModel);
+
+                client.ExecuteAsync<UserProfileWithDeviceDto>(request, callback);
+            }
+
+            public IRestResponse<UserProfileWithDeviceDto> LoginWithDevice(LoginModelWithDevice loginModel)
+            {
+                RestClient client = new RestClient(_apiUrl);
+                var request = PrepareLoginWithDeviceRequest(loginModel);
+
+                return client.Execute<UserProfileWithDeviceDto>(request);
+            }
+
+            private RestRequest PrepareLoginWithDeviceRequest(LoginModelWithDevice activity)
+            {
+                var request = new RestRequest(new Uri("Account/LoginWithDevice", UriKind.Relative), Method.POST);
+
+                request.RequestFormat = DataFormat.Json;
+                request.AddBody(activity);
+                AddCredentialsToRestRequest(request);
+
+                return request;
+            }
+
+            #endregion
+
             #region RegisterActivities
             public void RegisterActivityAsync(ActivityUpdateDto activity, Action<IRestResponse<ActivityUpdateDto>> callback)
             {
@@ -58,7 +89,7 @@ namespace TimeTracker.RestDataClient
 
             private RestRequest PrepareRegisterActivityRequest(ActivityUpdateDto activity)
             {
-                var request = new RestRequest(new Uri("Activity/PostActivity", UriKind.Relative), Method.POST);
+                var request = new RestRequest(new Uri("Activities/PostActivity", UriKind.Relative), Method.POST);
 
                 request.RequestFormat = DataFormat.Json;
                 request.AddBody(activity);
@@ -69,34 +100,34 @@ namespace TimeTracker.RestDataClient
 
             #endregion
 
-            #region RegisterActivitiesList
-            public void RegisterModuleCheckListAsync(List<ActivityUpdateDto> activities, Action<IRestResponse<List<ActivityUpdateDto>>> callback)
-            {
-                RestClient client = new RestClient(_apiUrl);
-                var request = PrepareRegisterModuleCheckListRequest(activities);
+            //#region RegisterActivitiesList
+            //public void RegisterActivityListAsync(List<ActivityUpdateDto> activities, Action<IRestResponse<List<ActivityUpdateDto>>> callback)
+            //{
+            //    RestClient client = new RestClient(_apiUrl);
+            //    var request = PrepareRegisterModuleCheckListRequest(activities);
 
-                client.ExecuteAsync<List<ActivityUpdateDto>>(request, callback);
-            }
+            //    client.ExecuteAsync<List<ActivityUpdateDto>>(request, callback);
+            //}
 
-            public IRestResponse<List<ActivityUpdateDto>> RegisterActivityList(List<ActivityUpdateDto> activities)
-            {
-                RestClient client = new RestClient(_apiUrl);
-                var request = PrepareRegisterModuleCheckListRequest(activities);
+            //public IRestResponse<List<ActivityUpdateDto>> RegisterActivityList(List<ActivityUpdateDto> activities)
+            //{
+            //    RestClient client = new RestClient(_apiUrl);
+            //    var request = PrepareRegisterModuleCheckListRequest(activities);
 
-                return client.Execute<List<ActivityUpdateDto>>(request);
-            }
+            //    return client.Execute<List<ActivityUpdateDto>>(request);
+            //}
 
-            private RestRequest PrepareRegisterModuleCheckListRequest(List<ActivityUpdateDto> moduleChecks)
-            {
-                var request = new RestRequest(new Uri("Common/RegisterModuleCheckList", UriKind.Relative), Method.POST);
+            //private RestRequest PrepareRegisterModuleCheckListRequest(List<ActivityUpdateDto> moduleChecks)
+            //{
+            //    var request = new RestRequest(new Uri("Common/RegisterModuleCheckList", UriKind.Relative), Method.POST);
 
-                request.RequestFormat = DataFormat.Json;
-                request.AddBody(moduleChecks);
-                AddCredentialsToRestRequest(request);
+            //    request.RequestFormat = DataFormat.Json;
+            //    request.AddBody(moduleChecks);
+            //    AddCredentialsToRestRequest(request);
 
-                return request;
-            }
-            #endregion
+            //    return request;
+            //}
+            //#endregion
 
             //#region GetSchedules
             //public void GetSchedulesAsync(string agentGuid, Action<IRestResponse<List<Schedule>>> callback)
