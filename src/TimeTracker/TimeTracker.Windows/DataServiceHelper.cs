@@ -46,6 +46,7 @@ namespace TimeTracker.Windows
             
             return client.Execute<Guid>(request).Content;
         }
+
         private RestRequest PrepareLogInRequest(LogInModel LoginWithDevice)
         {
             var request = new RestRequest(new Uri("Account/LoginWithDevice", UriKind.Relative), Method.POST);
