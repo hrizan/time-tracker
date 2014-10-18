@@ -205,6 +205,7 @@
     <Compile Include="Controllers\GoalController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginModelWithDevice.cs" />
+    <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Filters\AuthorizeTokenAttribute.cs" />
     <Compile Include="Filters\InitializeSimpleMembershipAttribute.cs" />
     <Compile Include="Filters\MobileAuthenticationMessageHandler.cs" />
@@ -224,8 +225,10 @@
     <Compile Include="Models\Consumer.cs" />
     <Compile Include="Models\Device.cs" />
     <Compile Include="Models\DeviceType.cs" />
+    <Compile Include="Models\ProductivityByCategoryDTO.cs" />
     <Compile Include="Models\Goal.cs" />
     <Compile Include="Models\GoalTarget.cs" />
+    <Compile Include="Models\ProductivityPointsDTO.cs" />
     <Compile Include="Models\TimeTrackerContext.cs" />
     <Compile Include="Models\OSType.cs" />
     <Compile Include="Models\WebSecurityHelpers.cs" />
