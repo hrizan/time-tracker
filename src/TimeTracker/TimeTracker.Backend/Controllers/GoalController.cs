@@ -32,7 +32,9 @@ namespace TimeTracker.Backend.Controllers
         {
             Guid consumerId = CurrentUserConsumerId.Value;
 
-            Goal goal = db.Goals.ForConsumer(consumerId).SingleOrDefault();
+            Goal goal = db.Goals
+                .ForConsumer(consumerId)
+                .SingleOrDefault(s => s.Id == id); //Currently can work without condition
             if (goal == null)
             {
                 throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));

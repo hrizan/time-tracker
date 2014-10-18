@@ -215,6 +215,7 @@
     <Compile Include="Controllers\DeviceController.cs" />
     <Compile Include="Controllers\GoalController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Models\CategoryUpdateDTO.cs" />
     <Compile Include="Models\GoalUpdateDTO.cs" />
     <Compile Include="Models\LoginModelWithDevice.cs" />
     <Compile Include="Controllers\ReportController.cs" />
