@@ -8,25 +8,34 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using TimeTracker.Backend.Filters;
 using TimeTracker.Backend.Models;
 
 namespace TimeTracker.Backend.Controllers
 {
-    public class CategoryController : ApiController
+    public class CategoryController : ApiControllerBase
     {
         private TimeTrackerContext db = new TimeTrackerContext();
 
         // GET api/Category
+        [AuthorizeToken]
         public IEnumerable<Category> GetCategories()
-        {   
-            var categories = db.Categories.Include(c => c.Consumer);
+        {
+            Guid consumerId = CurrentUserConsumerId.Value;
+
+            var categories = db.Categories.ForConsumer(consumerId);
             return categories.AsEnumerable();
         }
 
         // GET api/Category/5
+        [AuthorizeToken]
         public Category GetCategory(Guid id)
         {
-            Category category = db.Categories.Find(id);
+            Guid consumerId = CurrentUserConsumerId.Value;
+
+            Category category = db.Categories
+                .ForConsumer(consumerId)
+                .SingleOrDefault(s => s.Id == id);
             if (category == null)
             {
                 throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
@@ -36,6 +45,7 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // PUT api/Category/5
+        [AuthorizeToken]
         public HttpResponseMessage PutCategory(Guid id, Category category)
         {
             if (!ModelState.IsValid)
@@ -63,10 +73,19 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // POST api/Category
-        public HttpResponseMessage PostCategory(Category category)
+        [AuthorizeToken]
+        public HttpResponseMessage PostCategory(CategoryUpdateDTO categoryDto)
         {
+            Guid consumerId = CurrentUserConsumerId.Value;
+
             if (ModelState.IsValid)
             {
+                var category = new Category();
+                AutoMapper.Mapper.Map(categoryDto, category);
+
+                category.ConsumerId = consumerId;
+                category.Consumer = db.Consumers.SingleOrDefault(s => s.Id == consumerId);
+
                 db.Categories.Add(category);
                 db.SaveChanges();
 
@@ -81,6 +100,7 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // DELETE api/Category/5
+        [AuthorizeToken]
         public HttpResponseMessage DeleteCategory(Guid id)
         {
             Category category = db.Categories.Find(id);
