@@ -35,19 +35,55 @@ namespace TimeTracker.Backend.Controllers
         [HttpPost]
         public UserProfileWithDeviceDto LoginWithDevice(LoginModelWithDevice model)
         {
-            throw new NotImplementedException();
+            string username = model.UserName;
+            string password = model.Password;
 
-            //string username = model.UserName;
-            //string password = model.Password;
+            UserProfile loggedUserInfo = LoginUserByUsernameAndPassword(username, password);
 
-            //UserProfile loggedUserInfo = LoginUserByUsernameAndPassword(username, password);
-            
-            //if (loggedUserInfo != null)
-            //{
-            //    return loggedUserInfo;
-            //}
+            if (loggedUserInfo != null)
+            {
+                Device device = GetOrInsertDeviceIfNotExists(loggedUserInfo.ConsumerId, model.DeviceName, model.DeviceType, model.DeviceOSType);
+                var userWithDevice = new UserProfileWithDeviceDto()
+                {
+                    UserId = loggedUserInfo.UserId,
+                    UserName = loggedUserInfo.UserName,
+                    ConsumerId = loggedUserInfo.ConsumerId,
+                    AuthToken = loggedUserInfo.AuthToken,
+                    DeviceId = device.Id
+                };
+                return userWithDevice;
+            }
 
-            //throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.Unauthorized));
+            throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.Unauthorized));
+        }
+
+        private Device GetOrInsertDeviceIfNotExists(Guid? consumerId, string deviceName, int deviceType, int osType)
+        {
+            string deviceNameUpper = deviceName.ToUpper();
+            var device = db.Devices
+                            .ForConsumer(consumerId.Value)
+                            .Where(d => d.Name == deviceNameUpper
+                                    && d.DeviceTypeId == deviceType
+                                    && d.OSTypeId == osType)
+                            .FirstOrDefault();
+
+            if (device == null)
+            {
+                var newDevice = new Device()
+                {
+                    ConsumerId = consumerId.Value,
+                    DeviceTypeId = deviceType,
+                    OSTypeId = osType,
+                    Name = deviceNameUpper,
+                    FriendlyName = deviceNameUpper,
+                };
+                db.Devices.Add(newDevice);
+                db.SaveChanges();
+
+                return newDevice;
+            }
+
+            return device;
         }
 
 

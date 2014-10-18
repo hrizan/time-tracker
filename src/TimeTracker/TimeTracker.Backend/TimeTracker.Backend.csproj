@@ -246,6 +246,7 @@
     <Compile Include="Models\ProductivityTypeEnum.cs" />
     <Compile Include="Models\TimeTrackerContext.cs" />
     <Compile Include="Models\OSType.cs" />
+    <Compile Include="Models\UserProfileWithDeviceDto.cs" />
     <Compile Include="Models\WebSecurityHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
