@@ -8,21 +8,27 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using TimeTracker.Backend.Filters;
 using TimeTracker.Backend.Models;
+using TimeTracker.Models;
 
 namespace TimeTracker.Backend.Controllers
 {
-    public class ActivitiesController : ApiController
+    public class ActivitiesController : ApiControllerBase
     {
         private TimeTrackerContext db = new TimeTrackerContext();
 
         // GET api/Activities
-        public IEnumerable<Activity> GetActivities()
+        [AuthorizeToken]
+        public IEnumerable<Activity> GetAllActivities()
         {
-            var activities = db.Activities.Include(a => a.Consumer).Include(a => a.Device).Include(a => a.Category);
+            Guid consumerId = CurrentUserConsumerId.Value;
+            var activities = db.Activities.AsQueryable().ForConsumer(consumerId);
+
             return activities.AsEnumerable();
         }
 
+        [AuthorizeToken]
         public int GetAllActivitiesCount()
         {
             var activities = db.Activities;
@@ -30,9 +36,12 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // GET api/Activities/5
+        [AuthorizeToken]
         public Activity GetActivity(Guid id)
         {
-            Activity activity = db.Activities.Find(id);
+            Guid consumerId = CurrentUserConsumerId.Value;
+            Activity activity = db.Activities.ForConsumer(consumerId).SingleOrDefault(a => a.Id == id);
+
             if (activity == null)
             {
                 throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
@@ -42,37 +51,53 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // PUT api/Activities/5
-        public HttpResponseMessage PutActivity(Guid id, Activity activity)
-        {
-            if (!ModelState.IsValid)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
-            }
+        //[AuthorizeToken]
+        //public HttpResponseMessage PutActivity(Guid id, Activity activity)
+        //{
+        //    Guid consumerId = CurrentUserConsumerId.Value;
+            
 
-            if (id != activity.Id)
-            {
-                return Request.CreateResponse(HttpStatusCode.BadRequest);
-            }
 
-            db.Entry(activity).State = EntityState.Modified;
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+        //    }
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
-            }
+        //    if (id != activity.Id)
+        //    {
+        //        return Request.CreateResponse(HttpStatusCode.BadRequest);
+        //    }
 
-            return Request.CreateResponse(HttpStatusCode.OK);
-        }
+        //    db.Entry(activity).State = EntityState.Modified;
+
+        //    try
+        //    {
+        //        db.SaveChanges();
+        //    }
+        //    catch (DbUpdateConcurrencyException ex)
+        //    {
+        //        return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
+        //    }
+
+        //    return Request.CreateResponse(HttpStatusCode.OK);
+        //}
 
         // POST api/Activities
-        public HttpResponseMessage PostActivity(Activity activity)
+        [AuthorizeToken]
+        public HttpResponseMessage PostActivity(ActivityUpdateDto activityDto)
         {
+            Guid consumerId = CurrentUserConsumerId.Value;
+            
             if (ModelState.IsValid)
             {
+                var activity = new Activity();
+                AutoMapper.Mapper.Map(activityDto, activity);
+
+                //system data updates
+                activity.ConsumerId = consumerId;
+                activity.ProductivityScore = GetProductivityScore(consumerId, activity.ProcessName, activity.Resource);
+                activity.CategoryId = GetCategory(consumerId, activity.ProcessName, activity.Resource);
+
                 db.Activities.Add(activity);
                 db.SaveChanges();
 
@@ -86,7 +111,22 @@ namespace TimeTracker.Backend.Controllers
             }
         }
 
+        private int GetProductivityScore(Guid consumerId, string processName, string resource)
+        {
+            var productivityScore = db.GetProductivityScore(consumerId, processName, resource);
+
+            return productivityScore;
+        }
+
+        private Guid? GetCategory(Guid consumerId, string processName, string resource)
+        {
+            var category = db.GetCategory(consumerId, processName, resource);
+
+            return category;
+        }
+
         // DELETE api/Activities/5
+        [AuthorizeToken]
         public HttpResponseMessage DeleteActivity(Guid id)
         {
             Activity activity = db.Activities.Find(id);

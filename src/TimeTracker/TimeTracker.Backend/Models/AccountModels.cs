@@ -69,6 +69,16 @@ namespace TimeTracker.Backend.Models
         public int UserId { get; set; }
         public string UserName { get; set; }
         public string AuthToken { get; set; }
+        public Guid ConsumerId { get; set; }
+    }
+
+    public class UserProfileWithDeviceDto
+    {
+        public int UserId { get; set; }
+        public string UserName { get; set; }
+        public string AuthToken { get; set; }
+        public Guid ConsumerId { get; set; }
+        public Guid DeviceId { get; set; }
     }
 
     public class RegisterExternalLoginModel
@@ -179,6 +189,7 @@ namespace TimeTracker.Backend.Models
         public string City { get; set; }
         public string BirthDate { get; set; }
         public int? Age { get; set; }
+        public string Occupation { get; set; }
     }
 
     public class ExternalLogin

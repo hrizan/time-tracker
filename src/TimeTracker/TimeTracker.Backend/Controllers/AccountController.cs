@@ -33,20 +33,21 @@ namespace TimeTracker.Backend.Controllers
         }
 
         [HttpPost]
-        public UserProfile LoginWithDevice(LoginModelWithDevice model)
+        public UserProfileWithDeviceDto LoginWithDevice(LoginModelWithDevice model)
         {
             throw new NotImplementedException();
 
-            string username = model.UserName;
-            string password = model.Password;
+            //string username = model.UserName;
+            //string password = model.Password;
 
-            UserProfile loggedUserInfo = LoginUserByUsernameAndPassword(username, password);
-            if (loggedUserInfo != null)
-            {
-                return loggedUserInfo;
-            }
+            //UserProfile loggedUserInfo = LoginUserByUsernameAndPassword(username, password);
+            
+            //if (loggedUserInfo != null)
+            //{
+            //    return loggedUserInfo;
+            //}
 
-            throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.Unauthorized));
+            //throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.Unauthorized));
         }
 
 
@@ -94,6 +95,7 @@ namespace TimeTracker.Backend.Controllers
                         Username = model.UserName,
                         Created = DateTime.Now,
                         Country = model.Country,
+                        Occupation = model.Occupation,
                         //BirthDate = (!string.IsNullOrEmpty(model.BirthDate)
                         //                ? DateTime.ParseExact(model.BirthDate, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
                         //                : (DateTime?)null),
@@ -105,6 +107,7 @@ namespace TimeTracker.Backend.Controllers
                     db.SaveChanges();
 
                     //save user company
+                    user.ConsumerId = consumer.Id;
                     usersDb.SaveChanges();
                     HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created);
                     return response;

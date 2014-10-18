@@ -47,12 +47,15 @@ namespace TimeTracker.Backend.Filters
                     var value = tokenValue.FirstOrDefault();
                     var usersDb = new UsersContext();
                     var userProfile = usersDb.UserProfiles.Single(u => u.AuthToken == value);
+
                     if (userProfile != null)
                     {
-                        var userIdentity = new GenericIdentity(userProfile.UserName);
+                        var userIdentity = new CustomIdentity(userProfile.UserName, userProfile.ConsumerId);
+                        
                         var principal = new GenericPrincipal(userIdentity, Roles.GetRolesForUser(userProfile.UserName));
                         Thread.CurrentPrincipal = principal;
                         HttpContext.Current.User = principal;
+                        
                         return true;
                     }
 

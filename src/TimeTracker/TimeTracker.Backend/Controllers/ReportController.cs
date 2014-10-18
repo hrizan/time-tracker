@@ -4,22 +4,28 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using TimeTracker.Backend.Filters;
 using TimeTracker.Backend.Models;
 
 namespace TimeTracker.Backend.Controllers
 {
-    public class ReportController : ApiController
+    public class ReportController : ApiControllerBase
     {
         private TimeTrackerContext db = new TimeTrackerContext();
 
-        public ProductivityPointsDTO GetProductivityPoints()
+        [AuthorizeToken]
+        public ProductivityPointsDTO GetProductivityPointsForDate(DateTime forDate)
         {
-            Guid userId = new Guid();
+            Guid consumerId = CurrentUserConsumerId.Value;
+
+            DateTime dateFrom = forDate.Date;
+            DateTime dateTo = forDate.Date.AddDays(1);
+           
             var query = db.Activities.Where(
-                w => w.ConsumerId == userId
-                && w.TimeFrom > DateTime.Today
-                && w.TimeTo < DateTime.Today.AddDays(1))
-                .GroupBy(g => g.ProductiveMultiplier > 0)
+                w => w.ConsumerId == consumerId
+                && w.TimeFrom > dateFrom
+                && w.TimeTo < dateTo)
+                .GroupBy(g => g.ProductivityScore > 0)
                 .Select(sa => new
                 {
                     Positive = sa.Key,
@@ -34,19 +40,23 @@ namespace TimeTracker.Backend.Controllers
             return result;
         }
 
-        public List<ProductivityByCategoryDTO> GetProductivityByCategories()
+        public List<ProductivityByCategoryDTO> GetProductivityByCategoriesForDate(DateTime forDate)
         {
-            Guid userId = new Guid();
+            Guid consumerId = CurrentUserConsumerId.Value;
+
+            DateTime dateFrom = forDate.Date;
+            DateTime dateTo = forDate.Date.AddDays(1);
+
             var result = db.Activities.Where(a =>
-                a.ConsumerId == userId
-                && a.TimeFrom > DateTime.Today
-                && a.TimeTo < DateTime.Today.AddDays(1)
+                a.ConsumerId == consumerId
+                && a.TimeFrom > dateFrom
+                && a.TimeTo < dateTo
                 && a.Category != null)
                 .GroupBy(g => g.CategoryId)
                 .Select(s => new ProductivityByCategoryDTO()
                 {
                     Label = s.First().Category.Name,
-                    Value = s.Sum(sum => sum.Duration / 60)
+                    Value = (int)s.Sum(sum => sum.DurationInSec / 60)//I dont know if this is working
                 }).
                 Where(pbc => pbc.Value >= 1)
                 .OrderBy(o => o.Value)

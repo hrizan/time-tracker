@@ -8,6 +8,7 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using TimeTracker.Backend.Helpers;
 using TimeTracker.Backend.Models;
 using WebMatrix.WebData;
 
@@ -28,6 +29,8 @@ namespace TimeTracker.Backend
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            AutoMapperConfigurator.CreateMappings();
         }
 
         private void ConfigureDb()
