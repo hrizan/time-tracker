@@ -25,7 +25,7 @@ namespace TimeTracker.Backend.Models
 
         public DateTime? Created { get; set; }
         public string Username { get; set; }
-
+        
         public virtual ICollection<Device> Devices { get; set; }
         public virtual ICollection<Goal> Goals { get; set; }
         public virtual ICollection<Activity> Activities { get; set; }

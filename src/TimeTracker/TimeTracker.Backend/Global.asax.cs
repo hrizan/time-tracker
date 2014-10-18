@@ -23,6 +23,7 @@ namespace TimeTracker.Backend
         {
             AreaRegistration.RegisterAllAreas();
 
+            ConfigureDb();
             ConfigureMembership();
 
             WebApiConfig.Register(GlobalConfiguration.Configuration);
@@ -39,6 +40,7 @@ namespace TimeTracker.Backend
             //NotesappContext context = new NotesappContext();
             //context.Database.CreateIfNotExists();
             //var init = new SimpleMembershipInitializer();
+            Database.SetInitializer<TimeTrackerContext>(new DropCreateDatabaseIfModelChanges<TimeTrackerContext>()); 
         }
 
         public void ConfigureMembership()

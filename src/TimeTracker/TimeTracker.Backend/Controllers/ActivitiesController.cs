@@ -28,7 +28,7 @@ namespace TimeTracker.Backend.Controllers
             return activities.AsEnumerable();
         }
 
-        [AuthorizeToken]
+        
         public int GetAllActivitiesCount()
         {
             var activities = db.Activities;
@@ -95,8 +95,19 @@ namespace TimeTracker.Backend.Controllers
 
                 //system data updates
                 activity.ConsumerId = consumerId;
-                activity.ProductivityScore = GetProductivityScore(consumerId, activity.ProcessName, activity.Resource);
-                activity.CategoryId = GetCategory(consumerId, activity.ProcessName, activity.Resource);
+
+                var categorization = GetActivityCategorization(consumerId, activity.ProcessName, activity.Resource);
+                if (categorization != null)
+                {
+                    activity.ProductivityScore = categorization.ProductivityScore;
+                    activity.CategoryId = categorization.CategoryId;
+                }
+                else
+                {
+                    activity.ProductivityScore = (int)ProductivityTypeEnum.Neutral;
+                    activity.CategoryId = null;
+                }
+
 
                 db.Activities.Add(activity);
                 db.SaveChanges();
@@ -111,19 +122,13 @@ namespace TimeTracker.Backend.Controllers
             }
         }
 
-        private int GetProductivityScore(Guid consumerId, string processName, string resource)
+        private ActivityCategorization GetActivityCategorization(Guid consumerId, string processName, string resource)
         {
-            var productivityScore = db.GetProductivityScore(consumerId, processName, resource);
+            var productivityScore = db.GetActivityCategorization(consumerId, processName, resource);
 
             return productivityScore;
         }
 
-        private Guid? GetCategory(Guid consumerId, string processName, string resource)
-        {
-            var category = db.GetCategory(consumerId, processName, resource);
-
-            return category;
-        }
 
         // DELETE api/Activities/5
         [AuthorizeToken]
@@ -154,5 +159,6 @@ namespace TimeTracker.Backend.Controllers
             db.Dispose();
             base.Dispose(disposing);
         }
+
     }
 }

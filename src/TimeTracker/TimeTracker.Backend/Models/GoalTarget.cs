@@ -7,7 +7,8 @@ namespace TimeTracker.Backend.Models
 {
     public enum GoalTarget
     {
-        Productivity = 1,
-        ActivityCategory = 2,
+        Productivity_Distractive = -1,
+        Productivity_Productive = 1,
+        ActivityCategory = 3,
     }
 }

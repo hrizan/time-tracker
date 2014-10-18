@@ -42,8 +42,6 @@ namespace TimeTracker.Backend.Models
         /// </summary>
         public int ProductiveMultiplier { get; set; } //Denormalized - present in ActivityProductCategory
         
-        public ActivityProductivity ActivityProductiveCategory { get; set; }
-
         /// <summary>
         /// Example: Chrome.exe
         /// </summary>

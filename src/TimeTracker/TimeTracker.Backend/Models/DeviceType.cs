@@ -8,5 +8,8 @@ namespace TimeTracker.Backend.Models
     public enum DeviceType
     {
         NonSpeciefied = 0,
+        Desktop = 1,
+        MobilePhone = 2,
+        Tablet = 2,
     }
 }

@@ -69,6 +69,5 @@ namespace TimeTracker.Backend.Models
 
         }
 
-        public DbSet<ActivityProductiveCategory> ActivityProductiveCategories { get; set; }
     }
 }
