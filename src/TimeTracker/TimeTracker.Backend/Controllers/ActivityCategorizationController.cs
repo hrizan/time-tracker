@@ -42,11 +42,24 @@ namespace TimeTracker.Backend.Controllers
                 })
                 .ToList();
 
-            //var withoutCategory =
-            //    db.Activities
-            //    .Select()
-                
-            throw new NotImplementedException();
+            var withoutCategory =
+                db.Activities
+                .Where(w => w.CategoryId == null)
+                .GroupBy(gb => new { gb.ProcessName, gb.Resource})
+                .Select(s => new ActivityGroupsCategorizationDTO()
+                {
+                    ActivityCategorization = null,
+                    Category = null,
+                    ProcessName = s.Key.ProcessName,
+                    Resource = s.Key.Resource,
+                    ProductivityScore = 0, //Neutral value
+                })
+                .ToList();
+            List<ActivityGroupsCategorizationDTO> result = new List<ActivityGroupsCategorizationDTO>();
+            result.AddRange(withoutCategory);
+            result.AddRange(withCategory);
+
+            return result;
         }
 
         // GET api/ActivityCategorization/5
