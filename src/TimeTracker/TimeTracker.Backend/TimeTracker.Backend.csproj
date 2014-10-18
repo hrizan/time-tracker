@@ -208,6 +208,7 @@
     <Compile Include="Controllers\ActivitiesController.cs" />
     <Compile Include="Controllers\ActivityCategorizationController.cs" />
     <Compile Include="Data\CommonDataHelpers.cs" />
+    <Compile Include="Models\ActivityGroupsCategorizationDTO.cs" />
     <Compile Include="Models\ActivityUpdateDto.cs" />
     <Compile Include="Controllers\ApiControllerBase.cs" />
     <Compile Include="Controllers\CategoryController.cs" />
@@ -216,6 +217,7 @@
     <Compile Include="Controllers\GoalController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Models\CategoryUpdateDTO.cs" />
+    <Compile Include="Models\DeviceUpdateDTO.cs" />
     <Compile Include="Models\GoalUpdateDTO.cs" />
     <Compile Include="Models\LoginModelWithDevice.cs" />
     <Compile Include="Controllers\ReportController.cs" />

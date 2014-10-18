@@ -8,105 +8,148 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using TimeTracker.Backend.Filters;
 using TimeTracker.Backend.Models;
 
 namespace TimeTracker.Backend.Controllers
 {
-    //public class ActivityCategorizationController : ApiController
-    //{
-    //    private TimeTrackerContext db = new TimeTrackerContext();
+    public class ActivityCategorizationController : ApiControllerBase
+    {
+        private TimeTrackerContext db = new TimeTrackerContext();
 
-    //    // GET api/ActivityCategorization
-    //    public IEnumerable<ActivityCategorization> GetActivityCategorizations()
-    //    {
-    //        var activitycategorizations = db.ActivityCategorizations.Include(a => a.Category);
-    //        return activitycategorizations.AsEnumerable();
-    //    }
+        // GET api/ActivityCategorization
+        [AuthorizeToken]
+        public IEnumerable<ActivityCategorization> GetActivityCategorizations()
+        {
+            var activitycategorizations = db.ActivityCategorizations.Include(a => a.Category);
+            return activitycategorizations.AsEnumerable();
+        }
 
-    //    // GET api/ActivityCategorization/5
-    //    public ActivityCategorization GetActivityCategorization(Guid id)
-    //    {
-    //        ActivityCategorization activitycategorization = db.ActivityCategorizations.Find(id);
-    //        if (activitycategorization == null)
-    //        {
-    //            throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
-    //        }
+        [AuthorizeToken]
+        public IEnumerable<ActivityGroupsCategorizationDTO> GetActivityCategorizationsGrouped()
+        {
+            var withCategory= 
+                db.ActivityCategorizations
+                .Select(s => s.Category)
+                .SelectMany(sm => sm.ActivityCategorizations)
+                .Select(s => new ActivityGroupsCategorizationDTO() 
+                {
+                    ActivityCategorization = s,
+                    Category = s.Category,
+                    ProcessName = s.ProcessName,
+                    ProductivityScore = s.ProductivityScore,
+                    Resource = s.Resource,                    
+                })
+                .ToList();
 
-    //        return activitycategorization;
-    //    }
+            var withoutCategory =
+                db.Activities
+                .Where(w => w.CategoryId == null)
+                .GroupBy(gb => new { gb.ProcessName, gb.Resource})
+                .Select(s => new ActivityGroupsCategorizationDTO()
+                {
+                    ActivityCategorization = null,
+                    Category = null,
+                    ProcessName = s.Key.ProcessName,
+                    Resource = s.Key.Resource,
+                    ProductivityScore = 0, //Neutral value
+                })
+                .ToList();
+            List<ActivityGroupsCategorizationDTO> result = new List<ActivityGroupsCategorizationDTO>();
+            result.AddRange(withoutCategory);
+            result.AddRange(withCategory);
 
-    //    // PUT api/ActivityCategorization/5
-    //    public HttpResponseMessage PutActivityCategorization(Guid id, ActivityCategorization activitycategorization)
-    //    {
-    //        if (!ModelState.IsValid)
-    //        {
-    //            return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
-    //        }
+            return result;
+        }
 
-    //        if (id != activitycategorization.Id)
-    //        {
-    //            return Request.CreateResponse(HttpStatusCode.BadRequest);
-    //        }
+        // GET api/ActivityCategorization/5
+        [AuthorizeToken]
+        public ActivityCategorization GetActivityCategorization(Guid id)
+        {
+            ActivityCategorization activitycategorization = db.ActivityCategorizations.Find(id);
+            if (activitycategorization == null)
+            {
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
+            }
 
-    //        db.Entry(activitycategorization).State = EntityState.Modified;
+            return activitycategorization;
+        }
 
-    //        try
-    //        {
-    //            db.SaveChanges();
-    //        }
-    //        catch (DbUpdateConcurrencyException ex)
-    //        {
-    //            return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
-    //        }
+        // PUT api/ActivityCategorization/5
+        [AuthorizeToken]
+        public HttpResponseMessage PutActivityCategorization(Guid id, ActivityCategorization activitycategorization)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
 
-    //        return Request.CreateResponse(HttpStatusCode.OK);
-    //    }
+            if (id != activitycategorization.Id)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest);
+            }
 
-    //    // POST api/ActivityCategorization
-    //    public HttpResponseMessage PostActivityCategorization(ActivityCategorization activitycategorization)
-    //    {
-    //        if (ModelState.IsValid)
-    //        {
-    //            db.ActivityCategorizations.Add(activitycategorization);
-    //            db.SaveChanges();
+            db.Entry(activitycategorization).State = EntityState.Modified;
 
-    //            HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, activitycategorization);
-    //            response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = activitycategorization.Id }));
-    //            return response;
-    //        }
-    //        else
-    //        {
-    //            return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
-    //        }
-    //    }
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
+            }
 
-    //    // DELETE api/ActivityCategorization/5
-    //    public HttpResponseMessage DeleteActivityCategorization(Guid id)
-    //    {
-    //        ActivityCategorization activitycategorization = db.ActivityCategorizations.Find(id);
-    //        if (activitycategorization == null)
-    //        {
-    //            return Request.CreateResponse(HttpStatusCode.NotFound);
-    //        }
+            return Request.CreateResponse(HttpStatusCode.OK);
+        }
 
-    //        db.ActivityCategorizations.Remove(activitycategorization);
+        // POST api/ActivityCategorization
+        [AuthorizeToken]
+        public HttpResponseMessage PostActivityCategorization(ActivityCategorization activitycategorization)
+        {
+            if (ModelState.IsValid)
+            {
+                db.ActivityCategorizations.Add(activitycategorization);
+                db.SaveChanges();
 
-    //        try
-    //        {
-    //            db.SaveChanges();
-    //        }
-    //        catch (DbUpdateConcurrencyException ex)
-    //        {
-    //            return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
-    //        }
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, activitycategorization);
+                response.Headers.Location = new Uri(Url.Link("DefaultApi", new { id = activitycategorization.Id }));
+                return response;
+            }
+            else
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
+            }
+        }
 
-    //        return Request.CreateResponse(HttpStatusCode.OK, activitycategorization);
-    //    }
+        // DELETE api/ActivityCategorization/5
+        [AuthorizeToken]
+        public HttpResponseMessage DeleteActivityCategorization(Guid id)
+        {
+            ActivityCategorization activitycategorization = db.ActivityCategorizations.Find(id);
+            if (activitycategorization == null)
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            }
 
-    //    protected override void Dispose(bool disposing)
-    //    {
-    //        db.Dispose();
-    //        base.Dispose(disposing);
-    //    }
-    //}
+            db.ActivityCategorizations.Remove(activitycategorization);
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.NotFound, ex);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, activitycategorization);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            db.Dispose();
+            base.Dispose(disposing);
+        }
+    }
 }

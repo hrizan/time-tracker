@@ -21,5 +21,7 @@ namespace TimeTracker.Backend.Models
 
         public Guid? CategoryId { get; set; }
         public virtual Category Category { get; set; }
+
+        public int Value { get; set; }
     }
 }

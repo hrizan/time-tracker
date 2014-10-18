@@ -17,5 +17,7 @@ namespace TimeTracker.Backend.Models
 
         public Guid? ConsumerId { get; set; }
         public virtual Consumer Consumer { get; set; }
+
+        public virtual IEnumerable<ActivityCategorization> ActivityCategorizations { get; set; }
     }
 }

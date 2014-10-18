@@ -8,25 +8,31 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using TimeTracker.Backend.Filters;
 using TimeTracker.Backend.Models;
 
 namespace TimeTracker.Backend.Controllers
 {
-    public class DeviceController : ApiController
+    public class DeviceController : ApiControllerBase
     {
         private TimeTrackerContext db = new TimeTrackerContext();
 
         // GET api/Device
+        [AuthorizeToken]
         public IEnumerable<Device> GetDevices()
         {
-            var devices = db.Devices.Include(d => d.Consumer);
+            Guid user_id = CurrentUserConsumerId.Value;
+            var devices = db.Devices.ForConsumer(user_id);
             return devices.AsEnumerable();
         }
 
         // GET api/Device/5
+        [AuthorizeToken]
         public Device GetDevice(Guid id)
         {
-            Device device = db.Devices.Find(id);
+            Guid user_id = CurrentUserConsumerId.Value;
+
+            Device device = db.Devices.ForConsumer(user_id).SingleOrDefault(sd => sd.Id == id);
             if (device == null)
             {
                 throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
@@ -36,8 +42,16 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // PUT api/Device/5
-        public HttpResponseMessage PutDevice(Guid id, Device device)
+        [AuthorizeToken]
+        public HttpResponseMessage PutDevice(Guid id, DeviceUpdateDTO deviceDto)
         {
+            Guid user_id = CurrentUserConsumerId.Value;
+
+            Device device = new Device();
+            AutoMapper.Mapper.Map(deviceDto, device);
+
+            device.ConsumerId = user_id;
+
             if (!ModelState.IsValid)
             {
                 return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ModelState);
@@ -63,10 +77,18 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // POST api/Device
-        public HttpResponseMessage PostDevice(Device device)
+        [AuthorizeToken]
+        public HttpResponseMessage PostDevice(DeviceUpdateDTO devicedto)
         {
+            Guid user_id = CurrentUserConsumerId.Value;
+
             if (ModelState.IsValid)
             {
+                Device device = new Device();
+                AutoMapper.Mapper.Map(devicedto, device);
+
+                device.ConsumerId = user_id;
+
                 db.Devices.Add(device);
                 db.SaveChanges();
 
@@ -81,9 +103,13 @@ namespace TimeTracker.Backend.Controllers
         }
 
         // DELETE api/Device/5
+        [AuthorizeToken]
         public HttpResponseMessage DeleteDevice(Guid id)
         {
-            Device device = db.Devices.Find(id);
+            Guid user_id = CurrentUserConsumerId.Value;
+
+            Device device = db.Devices.ForConsumer(user_id).SingleOrDefault(sd => sd.Id == id);
+
             if (device == null)
             {
                 return Request.CreateResponse(HttpStatusCode.NotFound);
