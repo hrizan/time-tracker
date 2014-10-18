@@ -89,7 +89,7 @@ namespace TimeTracker.RestDataClient
 
             private RestRequest PrepareRegisterActivityRequest(ActivityUpdateDto activity)
             {
-                var request = new RestRequest(new Uri("Activity/PostActivity", UriKind.Relative), Method.POST);
+                var request = new RestRequest(new Uri("Activities/PostActivity", UriKind.Relative), Method.POST);
 
                 request.RequestFormat = DataFormat.Json;
                 request.AddBody(activity);
