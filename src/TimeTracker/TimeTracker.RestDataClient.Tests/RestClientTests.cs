@@ -19,7 +19,6 @@ namespace TimeTracker.RestDataClient.Tests
             string computerName = "DOBI_PC";
             TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl, authKey);
             
-            
             string processName =  "Chrome.exe";
             string resourceName =  "Facebook.com";
             string resourceDescription = "Facebook - Momchil hardalov profile";//process title

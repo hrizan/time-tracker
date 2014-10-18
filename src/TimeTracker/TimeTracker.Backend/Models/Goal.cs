@@ -7,7 +7,7 @@ using System.Text;
 
 namespace TimeTracker.Backend.Models
 {
-        [Table("Goals")]
+    [Table("Goals")]
     public class Goal
     {
         [Key]
@@ -18,10 +18,8 @@ namespace TimeTracker.Backend.Models
         public virtual Consumer Consumer { get; set; }
 
         public int GoalTargetId { get; set; }
-        
-        public Guid? CategoryId { get; set; }
-        public virtual Category Category{get;set;}
 
-        public int Value { get; set; }
+        public Guid? CategoryId { get; set; }
+        public virtual Category Category { get; set; }
     }
 }
