@@ -18,6 +18,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6E449F
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTracker.RestDataClient", "TimeTracker.RestDataClient\TimeTracker.RestDataClient.csproj", "{B6F71DDE-A857-49F5-8270-BE2EDA3BD965}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTracker.RestDataClient.Tests", "TimeTracker.RestDataClient.Tests\TimeTracker.RestDataClient.Tests.csproj", "{11DBA312-458D-41D5-A6EE-AD73008EE87A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTracker.Windows.DataStore", "TimeTracker.Windows.DataStore\TimeTracker.Windows.DataStore.csproj", "{461D923A-8F4E-4774-88C1-73B97FF94069}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +46,18 @@ Global
 		{55D9D279-312D-418D-AA92-9485A2EB3F6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55D9D279-312D-418D-AA92-9485A2EB3F6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55D9D279-312D-418D-AA92-9485A2EB3F6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6F71DDE-A857-49F5-8270-BE2EDA3BD965}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6F71DDE-A857-49F5-8270-BE2EDA3BD965}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6F71DDE-A857-49F5-8270-BE2EDA3BD965}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6F71DDE-A857-49F5-8270-BE2EDA3BD965}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11DBA312-458D-41D5-A6EE-AD73008EE87A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11DBA312-458D-41D5-A6EE-AD73008EE87A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11DBA312-458D-41D5-A6EE-AD73008EE87A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11DBA312-458D-41D5-A6EE-AD73008EE87A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{461D923A-8F4E-4774-88C1-73B97FF94069}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{461D923A-8F4E-4774-88C1-73B97FF94069}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{461D923A-8F4E-4774-88C1-73B97FF94069}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{461D923A-8F4E-4774-88C1-73B97FF94069}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
