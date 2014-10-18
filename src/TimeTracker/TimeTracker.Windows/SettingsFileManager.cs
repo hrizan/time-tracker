@@ -11,21 +11,17 @@ namespace TimeTracker.Windows
     public static class SettingsFileManager
     {
         public static readonly string settingsPath = Application.StartupPath + "\\settings.xml";
+        public static Settings LatestSettings = null;
 
-        public static void WriteSettings(string user, string token, string machine)
+        public static void WriteSettings(Settings sett)
         {
             using (TextWriter writer = File.CreateText(settingsPath))
             {
-                Settings sett = new Settings
-                {
-                    username = user,
-                    usertoken = token,
-                    machine = machine
-                };
-
                 new XmlSerializer(typeof(Settings)).Serialize(writer, sett);
                 writer.Flush();
             }
+
+            LatestSettings = sett;
         }
 
         public static Settings ReadSettings()
@@ -39,6 +35,8 @@ namespace TimeTracker.Windows
                 reader.Close();
             }
 
+            LatestSettings = sett;
+
             return sett;
         }
     }
@@ -46,8 +44,17 @@ namespace TimeTracker.Windows
     [Serializable]
     public class Settings
     {
+        public Settings()
+        {
+            username = String.Empty;
+            usertoken = String.Empty;
+            machine = String.Empty;
+            deviceid = Guid.Empty;
+        }
+
         public string username { get; set; }
         public string usertoken { get; set; }
         public string machine { get; set; }
+        public Guid? deviceid { get; set; }
     }
 }

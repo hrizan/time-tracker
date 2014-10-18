@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using TimeTracker.Backend.Models;
+using TimeTracker.RestDataClient.TimeTracker.ClientRest;
 using TimeTracker.Windows.Models;
 
 namespace TimeTracker.Windows
@@ -14,6 +16,8 @@ namespace TimeTracker.Windows
     public partial class LoginForm : Form
     {
         static bool LoggingInProgress = false;
+
+        public static string apiUrl = "http://localhost:52359/Api";
         
         public LoginForm()
         {
@@ -22,24 +26,47 @@ namespace TimeTracker.Windows
 
         private void buttonLogin_Click(object sender, EventArgs e)
         {
-            LogInModel login = new LogInModel();
-            login.UserName = textBoxUser.Text.Trim();
-            login.Password = textBoxPass.Text;
-            login.DeviceName = Environment.MachineName;
-            login.DeviceOSType = (int)OSType.Windows;
+            string authKey = "";
+            string computerName = Environment.MachineName;
+            int deviceTypeId = (int)DeviceType.Desktop;
+            int oSTypeId = (int)OSType.Windows;
+            Guid? deviceId = null;
+            string username = textBoxUser.Text;
+            string password = textBoxPass.Text;
+            TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl, authKey);
 
-            DataServiceHelper helper = new DataServiceHelper(String.Empty, Guid.NewGuid());
-            string token = helper.LogIn(login);
-
-            if (token != String.Empty) //nekva proverka za uspeshen login????
+            var loginModelWithDevice = new LoginModelWithDevice()
             {
-                SettingsFileManager.WriteSettings(textBoxUser.Text, token, Environment.MachineName);
+                UserName = username,
+                Password = password,
+                DeviceName = computerName,
+                DeviceType = deviceTypeId,
+                DeviceOSType = oSTypeId
+            };
+
+            var response = dataService.LoginWithDevice(loginModelWithDevice);
+            if (response.ResponseStatus == ResponseStatus.Completed
+                && response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                var userProfile = response.Data;
+                authKey = userProfile.AuthToken;
+                deviceId = userProfile.DeviceId;
+
+                Settings sett = new Settings();
+                sett.username = userProfile.UserName;
+                sett.usertoken = userProfile.AuthToken;
+                sett.deviceid = userProfile.DeviceId;
+                sett.machine = Environment.MachineName;
+
+                SettingsFileManager.WriteSettings(sett);
                 DialogResult = DialogResult.OK;
                 Close();
+
+                //Debug.WriteLine("DeviceId:" + userProfile.DeviceId.ToString());
             }
             else
             {
-                //MessageBox.Show("Unsucce", "");
+                MessageBox.Show("Wrong username or password, or no Internet connection!", "Login error!");
             }
         }
 
@@ -51,6 +78,7 @@ namespace TimeTracker.Windows
             bool success = false;
 
             Settings sett = SettingsFileManager.ReadSettings();
+            
             if (sett.usertoken == String.Empty)
             {
                 LoginForm login = new LoginForm();
@@ -60,7 +88,7 @@ namespace TimeTracker.Windows
             }
             else
             {
-                //insert login logic here
+                TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl, sett.usertoken);
             }
 
             LoggingInProgress = false;

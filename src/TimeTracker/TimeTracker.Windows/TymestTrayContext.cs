@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 //using ProcessUsage.Models;
 using ProcessUsage.Services;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,6 +11,9 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using TimeTracker.Backend.Models;
+using TimeTracker.Models;
+using TimeTracker.RestDataClient.TimeTracker.ClientRest;
 using TimeTracker.Windows.DataStore;
 using TimeTracker.Windows.Properties;
 
@@ -40,7 +44,7 @@ namespace TimeTracker.Windows
         public TymestTrayContext()
         {
             if (!File.Exists(SettingsFileManager.settingsPath))
-                SettingsFileManager.WriteSettings(String.Empty, String.Empty, String.Empty);
+                SettingsFileManager.WriteSettings(new Settings());
 
             TymestTray = new NotifyIcon();
             TymestTray.Text = "Tymest Client";
@@ -67,10 +71,10 @@ namespace TimeTracker.Windows
             if (Running)
             {
                 Running = false;
-                StoreUncommitedActivity();
+                StoreUncommitedActivity(true);
                 Settings sett = SettingsFileManager.ReadSettings();
                 sett.usertoken = String.Empty;
-                SettingsFileManager.WriteSettings(sett.username, String.Empty, sett.machine);
+                SettingsFileManager.WriteSettings(sett);
             }
             else
             {
@@ -85,14 +89,14 @@ namespace TimeTracker.Windows
             {
                 if (value)
                 {
-                    StoreUncommitedActivity();
+                    StoreUncommitedActivity(true);
 
                     //trackedProcesses = new List<ProcessUsageInfo>();
                     trackedProcesses = new List<ProcessActivity>();
                     processWatcher = new ProcessWatcher(250, OnUserWorkingProcessChanged);
                     processWatcher.Start();
 
-                    timer = new System.Timers.Timer(15000); //600000);//10mins
+                    timer = new System.Timers.Timer(600000); //10mins
                     timer.Elapsed += timer_Elapsed;
                     timer.Enabled = true;
 
@@ -113,7 +117,7 @@ namespace TimeTracker.Windows
             }
         }
 
-        void StoreUncommitedActivity()
+        void StoreUncommitedActivity(bool StoreActivitiesFromRam)
         {
             TimeTrackerEmbeddedDataService dService = new TimeTrackerEmbeddedDataService();
 
@@ -122,12 +126,35 @@ namespace TimeTracker.Windows
                 if (activity.TimeTo == DateTime.MaxValue)
                     activity.TimeTo = DateTime.Now;
 
-                //TO DO - store to main DB
+                //store to main DB
+                var activityToRegister = new ActivityUpdateDto()
+                {
+                    //device info
+                    DeviceId = activity.DeviceId,
+                    DeviceName = Environment.MachineName,
+                    DeviceTypeId = (int)DeviceType.Desktop,
+                    OSTypeId = (int)OSType.Windows,
 
-                dService.DeleteProcessActivity(activity.Id);
+                    //process info
+                    ProcessName = activity.ProcessName,
+                    Resource = activity.Resource,
+                    ResourceDescription = activity.ResourceDescription,
+                    TimeFrom = activity.TimeFrom,
+                    TimeTo = activity.TimeTo,
+                    DurationInSec = (activity.TimeTo - activity.TimeFrom).TotalSeconds,
+                };
+
+                TimeTrackerDataService dataService = new TimeTrackerDataService(LoginForm.apiUrl, SettingsFileManager.LatestSettings.usertoken);
+                var res = dataService.RegisterActivity(activityToRegister);
+
+                if (res.ResponseStatus == ResponseStatus.Completed
+                    && res.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    dService.DeleteProcessActivity(activity.Id);
+                }
             }
 
-            if (trackedProcesses != null)
+            if (trackedProcesses != null && StoreActivitiesFromRam)
             {
                 foreach (var proc in trackedProcesses)
                 {
@@ -135,10 +162,33 @@ namespace TimeTracker.Windows
                     if (proc.TimeTo == DateTime.MaxValue)
                         proc.TimeTo = DateTime.Now;
 
-                    //TO DO - store to main DB
-                }
+                    //store to main DB
+                    var activityToRegister = new ActivityUpdateDto()
+                    {
+                        //device info
+                        DeviceId = proc.DeviceId,
+                        DeviceName = Environment.MachineName,
+                        DeviceTypeId = (int)DeviceType.Desktop,
+                        OSTypeId = (int)OSType.Windows,
 
-                trackedProcesses.Clear();
+                        //process info
+                        ProcessName = proc.ProcessName,
+                        Resource = proc.Resource,
+                        ResourceDescription = proc.ResourceDescription,
+                        TimeFrom = proc.TimeFrom,
+                        TimeTo = proc.TimeTo,
+                        DurationInSec = (proc.TimeTo - proc.TimeFrom).TotalSeconds,
+                    };
+
+                    TimeTrackerDataService dataService = new TimeTrackerDataService(LoginForm.apiUrl, SettingsFileManager.LatestSettings.usertoken);
+                    var res = dataService.RegisterActivity(activityToRegister);
+
+                    if (res.ResponseStatus == ResponseStatus.Completed
+                        && res.StatusCode == System.Net.HttpStatusCode.Created)
+                    {
+                        trackedProcesses.Remove(proc);
+                    }
+                }
             }
         }
 
@@ -148,13 +198,15 @@ namespace TimeTracker.Windows
 
             lock (locker)
             {
-                //TO DO: zapazvane na dannite v db
-                foreach (var activity in dService.GetProcessActivities(Int32.MaxValue).OrderBy(p => p.TimeFrom))
-                {
-                    dService.DeleteProcessActivity(activity.Id);
-                }
+                StoreUncommitedActivity(false);
+                
+                ////TO DO: zapazvane na dannite v db
+                //foreach (var activity in dService.GetProcessActivities(Int32.MaxValue).OrderBy(p => p.TimeFrom))
+                //{
+                //    dService.DeleteProcessActivity(activity.Id);
+                //}
 
-                //trackedProcesses.RemoveAll(p => p.UsagePeriods.Last().To.Value != DateTime.MaxValue);
+                ////trackedProcesses.RemoveAll(p => p.UsagePeriods.Last().To.Value != DateTime.MaxValue);
             }
         }
 
@@ -257,7 +309,7 @@ namespace TimeTracker.Windows
         void trayExit_Click(object sender, EventArgs e)
         {
             Running = false;
-            StoreUncommitedActivity();
+            StoreUncommitedActivity(true);
             ExitThread();
         }
 
