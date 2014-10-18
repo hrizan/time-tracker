@@ -213,6 +213,7 @@
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\Activity.cs" />
     <Compile Include="Models\ActivityCategorization.cs" />
+    <Compile Include="Models\ActivityProductiveCategory.cs" />
     <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Consumer.cs" />
     <Compile Include="Models\Device.cs" />

@@ -19,7 +19,7 @@ namespace TimeTracker.Backend.Models
 
         public int GoalTargetId { get; set; }
         
-        public Guid CategoryId { get; set; }
+        public Guid? CategoryId { get; set; }
         public virtual Category Category{get;set;}
     }
 }
