@@ -10,6 +10,6 @@ namespace TimeTracker.Backend.Models
         public Guid Id { get; set; }
         public string ProcessName { get; set; }
         public string Resource { get; set; }
-        
+        public int Multiplier { get; set; } 
     }
 }

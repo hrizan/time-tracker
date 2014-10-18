@@ -28,7 +28,7 @@ namespace TimeTracker.Backend.Models
         public Guid CategoryId { get; set; }
         public virtual Category Category { get; set; }
 
-        public int ProductiveMultiplier { get; set; }
+        public int ProductiveMultiplier { get; set; } //Denormalized - present in ActivityProductCategory
         public ActivityProductiveCategory ActivityProductiveCategory { get; set; }
         public int ProductivityScore { get; set; }
     }

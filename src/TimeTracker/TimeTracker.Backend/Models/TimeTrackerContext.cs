@@ -68,5 +68,7 @@ namespace TimeTracker.Backend.Models
             base.OnModelCreating(modelBuilder);
 
         }
+
+        public DbSet<ActivityProductiveCategory> ActivityProductiveCategories { get; set; }
     }
 }
