@@ -23,12 +23,13 @@ namespace TimeTracker.Backend.Models
 
         public Guid DeviceId { get; set; }
         public virtual Device Device { get; set; }
-
         public int DeviceType { get; set; }
 
-        public int ProductivityScore { get; set; }
-        
         public Guid CategoryId { get; set; }
         public virtual Category Category { get; set; }
+
+        public int ProductiveMultiplier { get; set; }
+        public ActivityProductiveCategory ActivityProductiveCategory { get; set; }
+        public int ProductivityScore { get; set; }
     }
 }
