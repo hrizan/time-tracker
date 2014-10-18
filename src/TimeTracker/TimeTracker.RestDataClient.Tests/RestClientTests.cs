@@ -4,6 +4,7 @@ using TimeTracker.RestDataClient.TimeTracker.ClientRest;
 using TimeTracker.Models;
 using TimeTracker.Backend.Models;
 using RestSharp;
+using System.Diagnostics;
 
 namespace TimeTracker.RestDataClient.Tests
 {
@@ -48,6 +49,36 @@ namespace TimeTracker.RestDataClient.Tests
                 && res.StatusCode == System.Net.HttpStatusCode.Created)
             {
                 //Uspeshen e zapisa - trieme ot opashkata
+            }
+        }
+
+        [TestMethod]
+        public void Test_Login()
+        {
+            string apiUrl = "http://localhost:52359/Api";
+            string authKey = "";
+            string computerName = "DOBI_PC";
+            int deviceTypeId = (int)DeviceType.Desktop;
+            int oSTypeId = (int)OSType.Windows;
+
+            string username = "tbmihailov3";
+            string password = "test123";
+            TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl, authKey);
+
+            var loginModelWithDevice = new LoginModelWithDevice(){
+                UserName = username,
+                Password = password,
+                DeviceName = computerName,
+                DeviceType = deviceTypeId,
+                DeviceOSType = oSTypeId
+            };
+            
+            var response = dataService.LoginWithDevice(loginModelWithDevice);
+            if (response.ResponseStatus == ResponseStatus.Completed
+                && response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                var userProfile = response.Data;
+                Debug.WriteLine("DeviceId:"+userProfile.DeviceId.ToString());
             }
         }
     }

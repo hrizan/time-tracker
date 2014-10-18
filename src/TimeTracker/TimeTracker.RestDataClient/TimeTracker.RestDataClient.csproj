@@ -50,8 +50,14 @@
     <Compile Include="..\TimeTracker.Backend\Models\DeviceType.cs">
       <Link>Models\DeviceType.cs</Link>
     </Compile>
+    <Compile Include="..\TimeTracker.Backend\Models\LoginModelWithDevice.cs">
+      <Link>Models\LoginModelWithDevice.cs</Link>
+    </Compile>
     <Compile Include="..\TimeTracker.Backend\Models\OSType.cs">
       <Link>Models\OSType.cs</Link>
+    </Compile>
+    <Compile Include="..\TimeTracker.Backend\Models\UserProfileWithDeviceDto.cs">
+      <Link>Models\UserProfileWithDeviceDto.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TimeTrackerDataService.cs" />
