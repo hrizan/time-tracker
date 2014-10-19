@@ -206,7 +206,9 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\ActivitiesController.cs" />
+    <Compile Include="Controllers\ActivityCategorizationAdminController.cs" />
     <Compile Include="Controllers\ActivityCategorizationController.cs" />
+    <Compile Include="Controllers\CategoryAdminController.cs" />
     <Compile Include="Data\CommonDataHelpers.cs" />
     <Compile Include="Models\ActivityGroupsCategorizationDTO.cs" />
     <Compile Include="Models\ActivityUpdateDto.cs" />
@@ -370,6 +372,16 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\ActivityCategorizationAdmin\Index.cshtml" />
+    <Content Include="Views\ActivityCategorizationAdmin\Details.cshtml" />
+    <Content Include="Views\ActivityCategorizationAdmin\Create.cshtml" />
+    <Content Include="Views\ActivityCategorizationAdmin\Edit.cshtml" />
+    <Content Include="Views\ActivityCategorizationAdmin\Delete.cshtml" />
+    <Content Include="Views\CategoryAdmin\Index.cshtml" />
+    <Content Include="Views\CategoryAdmin\Details.cshtml" />
+    <Content Include="Views\CategoryAdmin\Create.cshtml" />
+    <Content Include="Views\CategoryAdmin\Edit.cshtml" />
+    <Content Include="Views\CategoryAdmin\Delete.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

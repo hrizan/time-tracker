@@ -1,0 +1,50 @@
+﻿@model TimeTracker.Backend.Models.ActivityCategorization
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<fieldset>
+    <legend>ActivityCategorization</legend>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Consumer.Name)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Consumer.Name)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.ProcessName)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.ProcessName)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Resource)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Resource)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.Category.Name)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.Category.Name)
+    </div>
+
+    <div class="display-label">
+         @Html.DisplayNameFor(model => model.ProductivityScore)
+    </div>
+    <div class="display-field">
+        @Html.DisplayFor(model => model.ProductivityScore)
+    </div>
+</fieldset>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id=Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

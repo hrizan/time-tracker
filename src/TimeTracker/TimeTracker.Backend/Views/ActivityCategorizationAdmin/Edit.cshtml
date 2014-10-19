@@ -1,0 +1,70 @@
+﻿@model TimeTracker.Backend.Models.ActivityCategorization
+
+@{
+    ViewBag.Title = "Edit";
+}
+
+<h2>Edit</h2>
+
+@using (Html.BeginForm()) {
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    <fieldset>
+        <legend>ActivityCategorization</legend>
+
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.ConsumerId, "Consumer")
+        </div>
+        <div class="editor-field">
+            @Html.DropDownList("ConsumerId", String.Empty)
+            @Html.ValidationMessageFor(model => model.ConsumerId)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.ProcessName)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.ProcessName)
+            @Html.ValidationMessageFor(model => model.ProcessName)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.Resource)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.Resource)
+            @Html.ValidationMessageFor(model => model.Resource)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.CategoryId, "Category")
+        </div>
+        <div class="editor-field">
+            @Html.DropDownList("CategoryId", String.Empty)
+            @Html.ValidationMessageFor(model => model.CategoryId)
+        </div>
+
+        <div class="editor-label">
+            @Html.LabelFor(model => model.ProductivityScore)
+        </div>
+        <div class="editor-field">
+            @Html.EditorFor(model => model.ProductivityScore)
+            @Html.ValidationMessageFor(model => model.ProductivityScore)
+        </div>
+
+        <p>
+            <input type="submit" value="Save" />
+        </p>
+    </fieldset>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
