@@ -26,6 +26,12 @@ namespace TimeTracker.Windows.DataStore
 
             _db.SaveChanges();
         }
+
+        public void AddProcActivity(ProcessActivity procAct)
+        {
+            _db.ProcessActivities.Add(procAct);
+            _db.SaveChanges();
+        }
         
     }
 }

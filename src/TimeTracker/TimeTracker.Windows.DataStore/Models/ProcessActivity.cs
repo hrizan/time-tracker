@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,16 @@ namespace TimeTracker.Windows.DataStore
     [Table("Activities")]
     public class ProcessActivity
     {
+        public ProcessActivity()
+        {
+            Id = Guid.NewGuid();
+            TimeFrom = DateTime.MinValue;
+            TimeTo = DateTime.MaxValue;
+        }
+
         public Guid Id { get; set; }
+
+        public IntPtr WindowHandle { get; set; }
 
         /// <summary>
         /// Time UTC(0) DateTime.Now.UtcNow

@@ -1,12 +1,20 @@
-﻿using ProcessUsage.Models;
+﻿using NDde.Client;
+using Newtonsoft.Json;
+//using ProcessUsage.Models;
 using ProcessUsage.Services;
+using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
+using TimeTracker.Backend.Models;
+using TimeTracker.Models;
+using TimeTracker.RestDataClient.TimeTracker.ClientRest;
+using TimeTracker.Windows.DataStore;
 using TimeTracker.Windows.Properties;
 
 namespace TimeTracker.Windows
@@ -14,119 +22,294 @@ namespace TimeTracker.Windows
     class TymestTrayContext : ApplicationContext
     {
         NotifyIcon TymestTray = null;
+        MenuItem traySignInOut = null;
         MenuItem trayExit = null;
 
         ProcessWatcher processWatcher = null;
-        List<ProcessUsageInfo> trackedProcesses = null;
+        //List<ProcessUsageInfo> trackedProcesses = null;
+        List<ProcessActivity> trackedProcesses = null;
 
-        StreamWriter currentWriter = null;
         System.Timers.Timer timer = null;
+        readonly object locker = new object();
 
-        readonly string temp_storage_path = Application.StartupPath + "\\temp_storage.tmst";
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, int wParam, StringBuilder lParam);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr FindWindowEx(IntPtr Parent, int ChildAfter, string Class, string Window);
+
+        private const int WM_GETTEXT = 0x000D;
+        private const int WM_GETTEXTLENGTH = 0x000E;
 
         public TymestTrayContext()
         {
+            if (!File.Exists(SettingsFileManager.settingsPath))
+                SettingsFileManager.WriteSettings(new Settings());
+
             TymestTray = new NotifyIcon();
             TymestTray.Text = "Tymest Client";
             TymestTray.Icon = Resources.time_8_multi_size;
 
             TymestTray.ContextMenu = new ContextMenu();
 
+            traySignInOut = new MenuItem();
+            traySignInOut.Click += traySignInOut_Click;
+            traySignInOut.Text = "Sign in";
+            TymestTray.ContextMenu.MenuItems.Add(traySignInOut);
+
             trayExit = new MenuItem();
             trayExit.Text = "Exit";
             trayExit.Click += trayExit_Click;
             TymestTray.ContextMenu.MenuItems.Add(trayExit);
-
-            trackedProcesses = new List<ProcessUsageInfo>();
-            processWatcher = new ProcessWatcher(500, OnUserWorkingProcessChanged);
-            processWatcher.Start();
-
-            timer = new System.Timers.Timer(15000); //600000);//10mins
-            timer.Elapsed += timer_Elapsed;
-            currentWriter = new StreamWriter(temp_storage_path);
-            timer.Enabled = true;
-
             TymestTray.Visible = true;
 
-            //just for test :)
-            //SettingsFileManager.WriteSettings();
-            //SettingsFileManager.ReadSettings();
+            Running = LoginForm.AttemptLogIn();
+        }
+
+        void traySignInOut_Click(object sender, EventArgs e)
+        {
+            if (Running)
+            {
+                Running = false;
+                StoreUncommitedActivity(true);
+                Settings sett = SettingsFileManager.ReadSettings();
+                sett.usertoken = String.Empty;
+                SettingsFileManager.WriteSettings(sett);
+            }
+            else
+            {
+                Running = LoginForm.AttemptLogIn();
+            }
+        }
+
+        public bool Running
+        {
+            get { return timer != null ? timer.Enabled : false; }
+            set
+            {
+                if (value)
+                {
+                    StoreUncommitedActivity(true);
+
+                    //trackedProcesses = new List<ProcessUsageInfo>();
+                    trackedProcesses = new List<ProcessActivity>();
+                    processWatcher = new ProcessWatcher(250, OnUserWorkingProcessChanged);
+                    processWatcher.Start();
+
+                    timer = new System.Timers.Timer(600000); //10mins
+                    timer.Elapsed += timer_Elapsed;
+                    timer.Enabled = true;
+
+                    Settings sett = SettingsFileManager.ReadSettings();
+
+                    traySignInOut.Text = "Sign out (" + sett.username + ")";
+                }
+                else
+                {
+                    if (timer != null)
+                        timer.Enabled = false;
+
+                    if (processWatcher != null)
+                        processWatcher.Stop();
+
+                    traySignInOut.Text = "Sign in";
+                }
+            }
+        }
+
+        void StoreUncommitedActivity(bool StoreActivitiesFromRam)
+        {
+            TimeTrackerEmbeddedDataService dService = new TimeTrackerEmbeddedDataService();
+
+            foreach (var activity in dService.GetProcessActivities(Int32.MaxValue))
+            {
+                if (activity.TimeTo == DateTime.MaxValue)
+                    activity.TimeTo = DateTime.Now;
+
+                //store to main DB
+                var activityToRegister = new ActivityUpdateDto()
+                {
+                    //device info
+                    DeviceId = activity.DeviceId,
+                    DeviceName = Environment.MachineName,
+                    DeviceTypeId = (int)DeviceType.Desktop,
+                    OSTypeId = (int)OSType.Windows,
+
+                    //process info
+                    ProcessName = activity.ProcessName,
+                    Resource = activity.Resource,
+                    ResourceDescription = activity.ResourceDescription,
+                    TimeFrom = activity.TimeFrom,
+                    TimeTo = activity.TimeTo,
+                    DurationInSec = (activity.TimeTo - activity.TimeFrom).TotalSeconds,
+                };
+
+                TimeTrackerDataService dataService = new TimeTrackerDataService(LoginForm.apiUrl, SettingsFileManager.LatestSettings.usertoken);
+                var res = dataService.RegisterActivity(activityToRegister);
+
+                if (res.ResponseStatus == ResponseStatus.Completed
+                    && res.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    dService.DeleteProcessActivity(activity.Id);
+                }
+            }
+
+            if (trackedProcesses != null && StoreActivitiesFromRam)
+            {
+                foreach (var proc in trackedProcesses)
+                {
+                    TimeTrackerEmbeddedDataService service = new TimeTrackerEmbeddedDataService();
+                    if (proc.TimeTo == DateTime.MaxValue)
+                        proc.TimeTo = DateTime.Now;
+
+                    //store to main DB
+                    var activityToRegister = new ActivityUpdateDto()
+                    {
+                        //device info
+                        DeviceId = proc.DeviceId,
+                        DeviceName = Environment.MachineName,
+                        DeviceTypeId = (int)DeviceType.Desktop,
+                        OSTypeId = (int)OSType.Windows,
+
+                        //process info
+                        ProcessName = proc.ProcessName,
+                        Resource = proc.Resource,
+                        ResourceDescription = proc.ResourceDescription,
+                        TimeFrom = proc.TimeFrom,
+                        TimeTo = proc.TimeTo,
+                        DurationInSec = (proc.TimeTo - proc.TimeFrom).TotalSeconds,
+                    };
+
+                    TimeTrackerDataService dataService = new TimeTrackerDataService(LoginForm.apiUrl, SettingsFileManager.LatestSettings.usertoken);
+                    var res = dataService.RegisterActivity(activityToRegister);
+
+                    if (res.ResponseStatus == ResponseStatus.Completed
+                        && res.StatusCode == System.Net.HttpStatusCode.Created)
+                    {
+                        trackedProcesses.Remove(proc);
+                    }
+                }
+            }
         }
 
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            currentWriter.Flush();
-            currentWriter.Dispose();
+            TimeTrackerEmbeddedDataService dService = new TimeTrackerEmbeddedDataService();
 
-            ////////////////////////////////////////////////////
-            //TODO - izpra6tane na zapisanite danni kum DB!!!!//
-            ////////////////////////////////////////////////////
+            lock (locker)
+            {
+                StoreUncommitedActivity(false);
+                
+                ////TO DO: zapazvane na dannite v db
+                //foreach (var activity in dService.GetProcessActivities(Int32.MaxValue).OrderBy(p => p.TimeFrom))
+                //{
+                //    dService.DeleteProcessActivity(activity.Id);
+                //}
 
-            File.Delete(temp_storage_path);
-            currentWriter = new StreamWriter(temp_storage_path);
+                ////trackedProcesses.RemoveAll(p => p.UsagePeriods.Last().To.Value != DateTime.MaxValue);
+            }
         }
 
         private void OnUserWorkingProcessChanged(System.Diagnostics.Process p_old, System.Diagnostics.Process p_new)
         {
             if (p_old != null)
             {
-                ProcessUsageInfo old_info = trackedProcesses
-                    .Where(p => p.WindowHandle == p_old.MainWindowHandle && p.Name == p_old.ProcessName)
+                //ProcessUsageInfo old_info = trackedProcesses
+                //    .Where(p => p.WindowHandle == p_old.MainWindowHandle && p.Name == p_old.ProcessName)
+                //    .SingleOrDefault();
+                ProcessActivity old_info = trackedProcesses
+                    .Where(p => 
+                        p.WindowHandle == p_old.MainWindowHandle 
+                        && p.ProcessName == p_old.ProcessName
+                        && p.TimeTo == DateTime.MaxValue)
                     .SingleOrDefault();
 
-                if (old_info != null && old_info.UsagePeriods.Count > 0)
+                if (old_info != null)
                 {
-                    old_info.UsagePeriods[old_info.UsagePeriods.Count - 1].To = DateTime.Now;
-                    SaveProcInfo(old_info, old_info.UsagePeriods[old_info.UsagePeriods.Count - 1]);
+                    old_info.TimeTo = DateTime.Now;
+                    old_info.DurationInSec = (old_info.TimeTo - old_info.TimeFrom).TotalSeconds;
+                    SaveProcInfo(old_info);
+                    trackedProcesses.Remove(old_info);
                 }
             }
 
             if (p_new != null && p_new.ProcessName != "Idle")
             {
-                ProcessUsageInfo new_info = trackedProcesses
-                    .Where(p => p.WindowHandle == p_new.MainWindowHandle && p.Name == p_new.ProcessName)
-                    .SingleOrDefault();
+                //ProcessUsageInfo new_info = trackedProcesses
+                //    .Where(p => p.WindowHandle == p_new.MainWindowHandle && p.Name == p_new.ProcessName)
+                //    .SingleOrDefault();
 
-                if (new_info == null)
-                {
-                    new_info = new ProcessUsageInfo();
-                    new_info.MachineName = Environment.MachineName;
-                    new_info.Name = p_new.ProcessName;
-                    new_info.WindowHandle = p_new.MainWindowHandle;
-                    trackedProcesses.Add(new_info);
-                }
-
-                UsagePeriod up = new UsagePeriod();
-                up.From = DateTime.Now;
-                up.To = DateTime.MaxValue;
-                up.Title = p_new.MainWindowTitle;
-                new_info.UsagePeriods.Add(up);
+                ProcessActivity new_info = new ProcessActivity();
+                new_info.ProcessName = p_new.ProcessName;
+                new_info.WindowHandle = p_new.MainWindowHandle;
+                new_info.TimeFrom = DateTime.Now;
+                new_info.Resource = GetAdditionalInfo(p_new);
+                new_info.ResourceDescription = p_new.MainWindowTitle;
+                new_info.DeviceName = Environment.MachineName;
+                trackedProcesses.Add(new_info);
             }
         }
 
-        void SaveProcInfo(ProcessUsageInfo info, UsagePeriod period)
+        private string GetAdditionalInfo(Process proc)
         {
-                //info.WindowHandle.ToInt64() + "\r\n" +
-                //info.Name + "\r\n" +
-                //info.MachineName + "\r\n" +
-                //period.Title + "\r\n" +
-                //period.AdditionalInfo + "\r\n" +
-                //period.From.ToString("dd.MM.yyyy-hh.mm.ss") + "\r\n" +
-                //period.To.Value.ToString("dd.MM.yyyy-hh.mm.ss");
+            string info = String.Empty;
+            IntPtr id;
+            IntPtr length;
+            StringBuilder text;
 
-            currentWriter.Write(
-                info.WindowHandle.ToInt64() + "|" +
-                info.Name + "|" +
-                info.MachineName + "|" +
-                period.Title + "|" +
-                period.AdditionalInfo + "|" +
-                period.From.ToString("dd.MM.yyyy-hh.mm.ss") + "|" +
-                period.To.Value.ToString("dd.MM.yyyy-hh.mm.ss") + "\r\n");
+            switch (proc.ProcessName)
+            {
+                case "iexplore":
+                    id = proc.MainWindowHandle;
+                    id = FindWindowEx(id, 0, "WorkerW", null);
+                    id = FindWindowEx(id, 0, "ReBarWindow32", null);
+                    id = FindWindowEx(id, 0, "Address Band Root", null);
+                    id = FindWindowEx(id, 0, "Edit", null);
+                    length = SendMessage(id, WM_GETTEXTLENGTH, 0, null) + 1;
+                    text = new StringBuilder(length.ToInt32());
+                    SendMessage(id, WM_GETTEXT, length.ToInt32(), text);
+                    info = text.ToString();
+                    info = (new Uri(info)).Host;
+                    break;
+                case "firefox":
+                    DdeClient dde = new DdeClient("Firefox", "WWW_GetWindowInfo");
+                    dde.Connect();
+                    string url1 = dde.Request("URL", int.MaxValue);
+                    dde.Disconnect();
+                    info = url1
+                        .Replace("\"",String.Empty)
+                        .Replace("\0", String.Empty);
+
+                    string temp = info.Substring(0, info.IndexOf("://") + 3);
+                    info = info.Substring(info.IndexOf("://") + 3);
+                    info = info.Substring(0, info.IndexOf('/'));
+                    info = temp + info;
+                    info = (new Uri(info)).Host;
+                    break;
+                case "chrome":
+                    //id = FindWindowEx(proc.MainWindowHandle, 0, "Chrome_AutocompleteEditView", null); //Chrome_OmniboxView
+                    //length = SendMessage(id, WM_GETTEXTLENGTH, 0, null) + 1;
+                    //text = new StringBuilder(length.ToInt32());
+                    //SendMessage(id, WM_GETTEXT, length.ToInt32(), text);
+                    //info = text.ToString();
+                    break;
+            }
+
+            return info;
+        }
+
+        void SaveProcInfo(ProcessActivity activity)
+        {
+            TimeTrackerEmbeddedDataService dService = new TimeTrackerEmbeddedDataService();
+
+            lock (locker)
+                dService.AddProcActivity(activity);
         }
 
         void trayExit_Click(object sender, EventArgs e)
         {
-            processWatcher.Stop();
+            Running = false;
+            StoreUncommitedActivity(true);
             ExitThread();
         }
 
