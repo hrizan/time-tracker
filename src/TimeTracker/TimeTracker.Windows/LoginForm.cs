@@ -16,8 +16,9 @@ namespace TimeTracker.Windows
     public partial class LoginForm : Form
     {
         static bool LoggingInProgress = false;
+        static LoginForm CurrentForm = null;
 
-        public static string apiUrl = "http://localhost:52359/Api";
+        public static string apiUrl = "http://77.70.26.137/timetracker-v1/api";
         
         public LoginForm()
         {
@@ -33,7 +34,14 @@ namespace TimeTracker.Windows
             Guid? deviceId = null;
             string username = textBoxUser.Text;
             string password = textBoxPass.Text;
-            TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl, authKey);
+
+            //LogInModel login = new LogInModel();
+            //login.DeviceName = Environment.MachineName;
+            //login.DeviceOSType = oSTypeId;
+            //login.UserName = textBoxUser.Text;
+            //login.Password = textBoxPass.Text;
+
+            TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl);
 
             var loginModelWithDevice = new LoginModelWithDevice()
             {
@@ -70,6 +78,16 @@ namespace TimeTracker.Windows
             }
         }
 
+        public static void CloseActiveForm()
+        {
+            if (CurrentForm != null)
+            {
+                CurrentForm.Close();
+                CurrentForm.Dispose();
+                CurrentForm = null;
+            }
+        }
+
         public static bool AttemptLogIn()
         {
             if (LoggingInProgress) return false;
@@ -81,14 +99,16 @@ namespace TimeTracker.Windows
             
             if (sett.usertoken == String.Empty)
             {
-                LoginForm login = new LoginForm();
-                login.textBoxUser.Text = sett.username;
-                DialogResult result = login.ShowDialog();
+                CurrentForm = new LoginForm();
+                CurrentForm.textBoxUser.Text = sett.username;
+                DialogResult result = CurrentForm.ShowDialog();
                 success = result == DialogResult.OK;
+                CurrentForm = null;
             }
             else
             {
                 TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl, sett.usertoken);
+                success = true;
             }
 
             LoggingInProgress = false;
