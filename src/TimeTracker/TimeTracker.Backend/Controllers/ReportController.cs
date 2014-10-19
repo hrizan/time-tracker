@@ -21,7 +21,7 @@ namespace TimeTracker.Backend.Controllers
 
             DateTime dateFrom = forDate.Date;
             DateTime dateTo = forDate.Date.AddDays(1);
-           
+
             var query = db.Activities.Where(
                 w => w.ConsumerId == consumerId
                 && w.TimeFrom > dateFrom
@@ -144,6 +144,16 @@ namespace TimeTracker.Backend.Controllers
         [AuthorizeToken]
         public ProductivityPointsDTO GetProductivityPointsForDateDemo(DateTime forDate)
         {
+
+            if (forDate > DateTime.Today)
+            {
+                return new ProductivityPointsDTO()
+                {
+                    Productive = 0,
+                    Distractive = 0,
+                };
+            }
+
             if (forDate == DateTime.Today)
             {
                 return new ProductivityPointsDTO()
@@ -173,28 +183,37 @@ namespace TimeTracker.Backend.Controllers
         [AuthorizeToken]
         public ProductivityPointsByHours GetProductivityPointsForDateByHoursDemo(DateTime forDate)
         {
+            if (forDate > DateTime.Today)
+            {
+                return new ProductivityPointsByHours()
+                {
+                    Productive = new List<int>() { 0 },
+                    Distractive = new List<int>() { 0 }
+                };
+            }
+
             if (forDate == DateTime.Today)
             {
                 return new ProductivityPointsByHours()
                 {
-                    Productive = new List<int>() { 40, 2, 30, 120, 3, 4, 120, 213 },
-                    Distractive = new List<int>() { 12, 200, 30, 120, 323, 4, 12, 213 }
+                    Productive = new List<int>() { 40, 2, 30, 120, 3, 4, 120, 213, 100, 12, 123, 334, 123 },
+                    Distractive = new List<int>() { 12, 200, 30, 120, 323, 4, 12, 213, 12, 13, 14, 7, 6 }
                 };
             }
             else if (forDate == DateTime.Today.AddDays(-1))
             {
                 return new ProductivityPointsByHours()
                 {
-                    Productive = new List<int>() { 140, 123, 23, 1, 75, 60, 70, 100 },
-                    Distractive = new List<int>() { 120, 32, 432, 32, 3, 60, 50, 1 }
+                    Productive = new List<int>() { 0, 0, 0, 120, 32, 43, 33, 32, 110, 145, 120, 140, 123, 230, 1, 75, 60, 70, 650, 12, 320, 430, 150, 123 },
+                    Distractive = new List<int>() { 0, 0, 0, 12, 120, 323, 33, 32, 110, 145, 12, 140, 123, 23, 1, 45, 78, 33, 100, 128, 15, 43, 13, 123 }
                 };
             }
             else
             {
                 return new ProductivityPointsByHours()
                 {
-                    Productive = new List<int>() { 12, 233, 302, 23, 12, 43, 16, 23 },
-                    Distractive = new List<int>() { 40, 2, 30, 120, 3, 4, 120, 213 }
+                    Productive = new List<int>() { 120, 32, 43, 33, 650, 12, 320, 430, 32, 110, 0, 0, 0, 123, 230, 1, 75, 60, 70, 145, 120, 140, 150, 123 },
+                    Distractive = new List<int>() { 100, 128, 15, 43, 13, 123, 0, 23, 1, 45, 78, 33, 120, 323, 0, 0, 12, 12, 140, 123, 33, 32, 110, 145, }
                 };
             }
         }
@@ -202,6 +221,18 @@ namespace TimeTracker.Backend.Controllers
         [AuthorizeToken]
         public List<ProductivityByCategoryDTO> GetProductivityByCategoriesForDateDemo(DateTime forDate)
         {
+            if (forDate > DateTime.Today)
+            {
+                return new List<ProductivityByCategoryDTO>()
+                {
+                    new ProductivityByCategoryDTO()
+                    {
+                        Label = "Uncategorized",
+                        Value = 0,
+                    },
+                };
+            }
+
             if (forDate == DateTime.Today)
             {
                 return new List<ProductivityByCategoryDTO>()
@@ -235,7 +266,7 @@ namespace TimeTracker.Backend.Controllers
             }
             else if (forDate == DateTime.Today.AddDays(-1))
             {
-               return new List<ProductivityByCategoryDTO>()
+                return new List<ProductivityByCategoryDTO>()
                 {
                     new ProductivityByCategoryDTO()
                     {
@@ -303,6 +334,18 @@ namespace TimeTracker.Backend.Controllers
         [AuthorizeToken]
         public List<ProductivityByCategoryByHoursDTO> GetProductivityByCategoriesForDateByHoursDemo(DateTime forDate)
         {
+            if (forDate > DateTime.Today)
+            {
+                return new List<ProductivityByCategoryByHoursDTO>()
+                {
+                    new ProductivityByCategoryByHoursDTO()
+                    {
+                        Label = "Uncategorized",
+                        Values = new List<int>(){ 0},
+                    },
+                };
+            }
+
             if (forDate == DateTime.Today)
             {
                 return new List<ProductivityByCategoryByHoursDTO>()
@@ -310,17 +353,17 @@ namespace TimeTracker.Backend.Controllers
                     new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Software Development",
-                        Values = new List<int>(){ 40, 30, 15, 25, 24},
+                        Values = new List<int>(){ 40, 30, 30, 20, 12, 10, 34, 12, 40, 40, 45, 11, 50, 56, 0 },
                     },
                     new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Social Networks",
-                        Values = new List<int>(){ 10, 20, 20, 10, 15},
+                        Values = new List<int>(){ 12, 12, 5, 7, 0, 0, 0, 12, 15, 0, 5, 11, 3, 4, 2},
                     },
                      new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Communication",
-                        Values = new List<int>(){ 10, 10, 15, 25, 10},
+                        Values = new List<int>(){ 3, 8, 8, 12, 10, 20, 10, 12, 5, 0, 0, 2, 5, 3},
                     },
                 };
             }
@@ -331,17 +374,17 @@ namespace TimeTracker.Backend.Controllers
                      new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Social Networks",
-                        Values = new List<int>(){ 10, 20, 20, 10, 15},
+                        Values = new List<int>(){ 40, 30, 30, 20, 12, 10, 34, 12, 40, 40, 45, 11, 50, 56, 0, 12, 43, 12, 3, 43, 0, 0, 0,12 },
                     },
                     new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Software Development",
-                        Values = new List<int>(){ 40, 30, 15, 25, 24},
+                        Values = new List<int>(){ 15, 12,20, 12, 10, 56, 0, 0, 0,12, 12, 5, 7, 11, 50, 40, 12, 43, 12, 3, 43, 0, 30, 30 },
                     },
                      new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Communication",
-                        Values = new List<int>(){ 10, 10, 15, 25, 10},
+                        Values = new List<int>(){ 3, 2,20, 12, 1, 56, 0, 50, 0, 12, 43, 12, 3, 43, 0, 30, 30, 12, 12, 5, 7, 11, 50, 40,},
                     },
                 };
             }
@@ -352,17 +395,17 @@ namespace TimeTracker.Backend.Controllers
                     new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Communication",
-                        Values = new List<int>(){ 40, 30, 15, 25, 24},
+                        Values = new List<int>(){ 30, 12, 20, 12, 10, 56, 0, 40, 0, 12, 13, 12, 3, 43, 0,0, 0, 12,0, 5, 7, 21, 30, 40, 2, 2},
                     },
                     new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Social Networks",
-                        Values = new List<int>(){ 10, 20, 20, 10, 15},
+                        Values = new List<int>(){ 12, 20, 12, 10, 56, 0, 0,0, 0, 30, 12,0, 5, 7, 21, 30, 40, 40, 0, 12, 13, 12, 3, 43, 2, 2},
                     },
                      new ProductivityByCategoryByHoursDTO()
                     {
                         Label = "Software Development",                        
-                        Values = new List<int>(){ 10, 10, 15, 25, 10},
+                        Values = new List<int>(){ 30, 40, 0, 12, 13, 12, 7, 12, 3, 43, 0, 12, 10, 56, 0, 40, 2, 20, 0, 12,0, 5, 21, 30, 20,},
                     },
                 };
             }
