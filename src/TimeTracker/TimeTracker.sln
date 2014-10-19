@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTracker.Windows.DataSto
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTracker.Tools", "TimeTracker.Tools\TimeTracker.Tools.csproj", "{57C882B1-534E-4FE8-82E6-9F61DCCB0FB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeTracker.Backend.Tests", "TimeTracker.Backend.Tests\TimeTracker.Backend.Tests.csproj", "{D34EAC5F-7C38-4E71-B57D-EDB86C021794}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{57C882B1-534E-4FE8-82E6-9F61DCCB0FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57C882B1-534E-4FE8-82E6-9F61DCCB0FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57C882B1-534E-4FE8-82E6-9F61DCCB0FB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D34EAC5F-7C38-4E71-B57D-EDB86C021794}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D34EAC5F-7C38-4E71-B57D-EDB86C021794}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D34EAC5F-7C38-4E71-B57D-EDB86C021794}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D34EAC5F-7C38-4E71-B57D-EDB86C021794}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

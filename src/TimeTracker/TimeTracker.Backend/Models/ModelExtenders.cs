@@ -22,9 +22,9 @@ namespace TimeTracker.Backend.Models
             return goals.Where(a => a.ConsumerId == consumerId);
         }
 
-        public static IQueryable<Device> ForConsumer(this IQueryable<Device> goals, Guid consumerId)
+        public static IQueryable<Device> ForConsumer(this IQueryable<Device> devices, Guid consumerId)
         {
-            return goals.Where(a => a.ConsumerId == consumerId);
+            return devices.Where(a => a.ConsumerId == consumerId);
         }
 
         public static IQueryable<ActivityCategorization> ForConsumer(this IQueryable<ActivityCategorization> activityCategorizations, Guid consumerId)

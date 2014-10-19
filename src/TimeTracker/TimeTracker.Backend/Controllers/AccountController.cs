@@ -61,8 +61,10 @@ namespace TimeTracker.Backend.Controllers
         {
             string deviceNameUpper = deviceName.ToUpper();
             var device = db.Devices
-                            .ForConsumer(consumerId.Value)
-                            .Where(d => d.Name == deviceNameUpper
+                            
+                            .Where(d => 
+                                d.ConsumerId == consumerId
+                                && (d.Name == deviceNameUpper)
                                     && d.DeviceTypeId == deviceType
                                     && d.OSTypeId == osType)
                             .FirstOrDefault();

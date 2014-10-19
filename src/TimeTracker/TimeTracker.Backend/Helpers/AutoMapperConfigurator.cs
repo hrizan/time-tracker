@@ -12,8 +12,16 @@ namespace TimeTracker.Backend.Helpers
     {
         public static void CreateMappings()
         {
+            //activity
             Mapper.CreateMap<Activity, ActivityUpdateDto>();
             Mapper.CreateMap<ActivityUpdateDto, Activity>();
+
+            //Devcies
+            Mapper.CreateMap<Device, DeviceDto>();
+            Mapper.CreateMap<DeviceDto, Device>();
+
+            Mapper.CreateMap<List<Device>, List<DeviceDto>>();
+            Mapper.CreateMap<List<DeviceDto>, List<Device>>();
             //====================SAMPLE MAPPINGS
 
             //Items mapping

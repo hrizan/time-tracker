@@ -9,6 +9,11 @@ namespace TimeTracker.Tools
     {
         static void Main(string[] args)
         {
+            DataGenerator dg = new DataGenerator();
+            string username = "demo";
+            int forLastDaysNumber = 3;
+            //dg.GenerateUserActivities(username, forLastDaysNumber);
+
         }
     }
 }

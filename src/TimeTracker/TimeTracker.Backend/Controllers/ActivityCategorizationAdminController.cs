@@ -55,6 +55,8 @@ namespace TimeTracker.Backend.Controllers
             if (ModelState.IsValid)
             {
                 activitycategorization.Id = Guid.NewGuid();
+                activitycategorization.ProcessName = !string.IsNullOrEmpty(activitycategorization.ProcessName) ? activitycategorization.ProcessName.ToLower() : string.Empty;
+                activitycategorization.Resource = !string.IsNullOrEmpty(activitycategorization.Resource) ? activitycategorization.Resource.ToLower() : string.Empty;
                 db.ActivityCategorizations.Add(activitycategorization);
                 db.SaveChanges();
                 return RedirectToAction("Index");

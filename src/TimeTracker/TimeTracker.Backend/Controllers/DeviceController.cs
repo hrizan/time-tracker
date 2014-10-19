@@ -19,12 +19,23 @@ namespace TimeTracker.Backend.Controllers
 
         // GET api/Device
         [AuthorizeToken]
-        public IEnumerable<Device> GetDevices()
+        public IEnumerable<DeviceDto> GetDevices()
         {
             Guid user_id = CurrentUserConsumerId.Value;
-            var devices = db.Devices.ForConsumer(user_id).ToList();
+            var devices = db.Devices
+                            .Where(d=>d.ConsumerId == user_id)
+                            .ToList();
 
-            return devices;
+
+            List<DeviceDto> deviceDtos = new List<DeviceDto>();
+            foreach (var device in devices)
+            {
+                var deviceDto = new DeviceDto();
+                AutoMapper.Mapper.Map(device, deviceDto);
+                deviceDtos.Add(deviceDto);
+            }
+
+            return deviceDtos;
         }
 
         // GET api/Device/5

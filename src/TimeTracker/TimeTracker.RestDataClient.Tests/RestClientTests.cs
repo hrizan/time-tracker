@@ -63,8 +63,8 @@ namespace TimeTracker.RestDataClient.Tests
             int deviceTypeId = (int)DeviceType.Desktop;
             int oSTypeId = (int)OSType.Windows;
             Guid? deviceId = null;
-            string username = "tbmihailov3";
-            string password = "test123";
+            string username = "demo";
+            string password = "demodemo";
             TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl, authKey);
 
             var loginModelWithDevice = new LoginModelWithDevice(){
