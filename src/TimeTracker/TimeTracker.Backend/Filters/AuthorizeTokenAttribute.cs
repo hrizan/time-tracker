@@ -46,7 +46,7 @@ namespace TimeTracker.Backend.Filters
                     //Token validation logic here
                     var value = tokenValue.FirstOrDefault();
                     var usersDb = new UsersContext();
-                    var userProfile = usersDb.UserProfiles.Single(u => u.AuthToken == value);
+                    var userProfile = usersDb.UserProfiles.FirstOrDefault(u => u.AuthToken == value);
 
                     if (userProfile != null)
                     {
