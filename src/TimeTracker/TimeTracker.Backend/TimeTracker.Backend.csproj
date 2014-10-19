@@ -242,9 +242,11 @@
     <Compile Include="Models\Device.cs" />
     <Compile Include="Models\DeviceType.cs" />
     <Compile Include="Models\ModelExtenders.cs" />
+    <Compile Include="Models\ProductivityByCategoryByHoursDTO.cs" />
     <Compile Include="Models\ProductivityByCategoryDTO.cs" />
     <Compile Include="Models\Goal.cs" />
     <Compile Include="Models\GoalTarget.cs" />
+    <Compile Include="Models\ProductivityPointsByHours.cs" />
     <Compile Include="Models\ProductivityPointsDTO.cs" />
     <Compile Include="Models\ProductivityTypeEnum.cs" />
     <Compile Include="Models\TimeTrackerContext.cs" />
