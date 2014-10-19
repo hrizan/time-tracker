@@ -281,6 +281,8 @@
     <Content Include="Content\themes\fancy\font-awesome-4.2.0\scss\_spinning.scss" />
     <Content Include="Content\themes\fancy\font-awesome-4.2.0\scss\_stacked.scss" />
     <Content Include="Content\themes\fancy\font-awesome-4.2.0\scss\_variables.scss" />
+    <Content Include="Download\TymestForWindows.0.9.2.zip" />
+    <None Include="Properties\PublishProfiles\superhosting-homepage.pubxml" />
     <None Include="Properties\PublishProfiles\tymest.com-superhosting.pubxml" />
     <None Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.8.2.js" />

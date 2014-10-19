@@ -60,12 +60,12 @@ namespace TimeTracker.RestDataClient.Tests
             //string apiUrl = "http://localhost:52359/Api";
             string apiUrl = "http://77.70.26.137/timetracker-v1/Api";
             string authKey = "";
-            string computerName = "DOBI_PC";
+            string computerName = "TODOR_LAPTOP";
             int deviceTypeId = (int)DeviceType.Desktop;
             int oSTypeId = (int)OSType.Windows;
             Guid? deviceId = null;
-            string username = "demo";
-            string password = "demodemo";
+            string username = "test";
+            string password = "testtest";
             TimeTrackerDataService dataService = new TimeTrackerDataService(apiUrl, authKey);
 
             var loginModelWithDevice = new LoginModelWithDevice(){

@@ -341,7 +341,8 @@ namespace TimeTracker.Windows
         void SaveProcInfo(ProcessActivity activity)
         {
             TimeTrackerEmbeddedDataService dService = new TimeTrackerEmbeddedDataService();
-
+            Debug.WriteLine(string.Format("{0} - {1} - {2} sec - processName: {3} - {4}",
+                activity.TimeFrom, activity.TimeTo, activity.DurationInSec, activity.ProcessName, activity.Resource));
             lock (locker)
                 dService.AddProcActivity(activity);
         }

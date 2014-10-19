@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace TimeTracker.Windows
         public LoginForm()
         {
             InitializeComponent();
+
+            apiUrl = ConfigurationManager.AppSettings["API_URL"].ToString() ;
         }
 
         private void buttonLogin_Click(object sender, EventArgs e)
