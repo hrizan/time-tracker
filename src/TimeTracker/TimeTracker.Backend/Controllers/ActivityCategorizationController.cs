@@ -21,15 +21,20 @@ namespace TimeTracker.Backend.Controllers
         [AuthorizeToken]
         public IEnumerable<ActivityCategorization> GetActivityCategorizations()
         {
-            var activitycategorizations = db.ActivityCategorizations.Include(a => a.Category);
+            Guid user_id = CurrentUserConsumerId.Value;
+
+            var activitycategorizations = db.ActivityCategorizations.ForConsumer(user_id);
             return activitycategorizations.AsEnumerable();
         }
 
         [AuthorizeToken]
         public IEnumerable<ActivityGroupsCategorizationDTO> GetActivityCategorizationsGrouped()
         {
+            Guid user_id = CurrentUserConsumerId.Value;
+
             var withCategory= 
                 db.ActivityCategorizations
+                .ForConsumer(user_id)
                 .Select(s => s.Category)
                 .SelectMany(sm => sm.ActivityCategorizations)
                 .Select(s => new ActivityGroupsCategorizationDTO() 
@@ -66,7 +71,9 @@ namespace TimeTracker.Backend.Controllers
         [AuthorizeToken]
         public ActivityCategorization GetActivityCategorization(Guid id)
         {
-            ActivityCategorization activitycategorization = db.ActivityCategorizations.Find(id);
+            Guid user_id = CurrentUserConsumerId.Value;
+
+            ActivityCategorization activitycategorization = db.ActivityCategorizations.ForConsumer(user_id).SingleOrDefault(s => s.Id == id);
             if (activitycategorization == null)
             {
                 throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound));
@@ -103,8 +110,9 @@ namespace TimeTracker.Backend.Controllers
             return Request.CreateResponse(HttpStatusCode.OK);
         }
 
-        // POST api/ActivityCategorization
+
         [AuthorizeToken]
+
         public HttpResponseMessage PostActivityCategorization(ActivityCategorization activitycategorization)
         {
             if (ModelState.IsValid)

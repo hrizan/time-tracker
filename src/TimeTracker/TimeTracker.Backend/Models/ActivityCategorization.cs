@@ -8,7 +8,7 @@ using System.Text;
 namespace TimeTracker.Backend.Models
 {
     [Table("ActivityCategorizations")]
-    public class ActivityCategorization
+    public class ActivityCategorization 
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
