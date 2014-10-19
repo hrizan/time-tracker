@@ -26,7 +26,6 @@ namespace TimeTracker.Windows
         MenuItem trayExit = null;
 
         ProcessWatcher processWatcher = null;
-        //List<ProcessUsageInfo> trackedProcesses = null;
         List<ProcessActivity> trackedProcesses = null;
 
         System.Timers.Timer timer = null;
@@ -55,7 +54,6 @@ namespace TimeTracker.Windows
             traySignInOut = new MenuItem();
             traySignInOut.Click += traySignInOut_Click;
             traySignInOut.Text = "Sign in";
-            TymestTray.ContextMenu.MenuItems.Add(traySignInOut);
 
             trayExit = new MenuItem();
             trayExit.Text = "Exit";
@@ -78,6 +76,7 @@ namespace TimeTracker.Windows
             }
             else
             {
+                TymestTray.ContextMenu.MenuItems.Remove(traySignInOut);
                 Running = LoginForm.AttemptLogIn();
             }
         }
@@ -91,12 +90,11 @@ namespace TimeTracker.Windows
                 {
                     StoreUncommitedActivity(true);
 
-                    //trackedProcesses = new List<ProcessUsageInfo>();
                     trackedProcesses = new List<ProcessActivity>();
                     processWatcher = new ProcessWatcher(250, OnUserWorkingProcessChanged);
                     processWatcher.Start();
 
-                    timer = new System.Timers.Timer(600000); //10mins
+                    timer = new System.Timers.Timer(SettingsFileManager.LatestSettings.storeperiod);
                     timer.Elapsed += timer_Elapsed;
                     timer.Enabled = true;
 
@@ -106,14 +104,22 @@ namespace TimeTracker.Windows
                 }
                 else
                 {
+                    bool oldRunning = Running;
+
                     if (timer != null)
                         timer.Enabled = false;
 
                     if (processWatcher != null)
                         processWatcher.Stop();
 
+                    if (oldRunning)
+                        StoreUncommitedActivity(true);
+
                     traySignInOut.Text = "Sign in";
                 }
+
+                if (!TymestTray.ContextMenu.MenuItems.Contains(traySignInOut))
+                    TymestTray.ContextMenu.MenuItems.Add(0, traySignInOut);
             }
         }
 
@@ -121,7 +127,9 @@ namespace TimeTracker.Windows
         {
             TimeTrackerEmbeddedDataService dService = new TimeTrackerEmbeddedDataService();
 
-            foreach (var activity in dService.GetProcessActivities(Int32.MaxValue))
+            var activities = dService.GetProcessActivities(Int32.MaxValue);
+
+            foreach (var activity in activities)
             {
                 if (activity.TimeTo == DateTime.MaxValue)
                     activity.TimeTo = DateTime.Now;
@@ -156,7 +164,9 @@ namespace TimeTracker.Windows
 
             if (trackedProcesses != null && StoreActivitiesFromRam)
             {
-                foreach (var proc in trackedProcesses)
+                var trackedProcessesToRemove = trackedProcesses.ToArray();
+
+                foreach (var proc in trackedProcessesToRemove)
                 {
                     TimeTrackerEmbeddedDataService service = new TimeTrackerEmbeddedDataService();
                     if (proc.TimeTo == DateTime.MaxValue)
@@ -166,7 +176,7 @@ namespace TimeTracker.Windows
                     var activityToRegister = new ActivityUpdateDto()
                     {
                         //device info
-                        DeviceId = proc.DeviceId,
+                        //DeviceId = proc.DeviceId,
                         DeviceName = Environment.MachineName,
                         DeviceTypeId = (int)DeviceType.Desktop,
                         OSTypeId = (int)OSType.Windows,
@@ -217,12 +227,15 @@ namespace TimeTracker.Windows
                 //ProcessUsageInfo old_info = trackedProcesses
                 //    .Where(p => p.WindowHandle == p_old.MainWindowHandle && p.Name == p_old.ProcessName)
                 //    .SingleOrDefault();
-                ProcessActivity old_info = trackedProcesses
-                    .Where(p => 
-                        p.WindowHandle == p_old.MainWindowHandle 
+                var old_infos = trackedProcesses
+                    .Where(p =>
+                        p.WindowHandle == p_old.MainWindowHandle
                         && p.ProcessName == p_old.ProcessName
                         && p.TimeTo == DateTime.MaxValue)
-                    .SingleOrDefault();
+                        .ToList();
+                
+                ProcessActivity old_info = old_infos
+                    .FirstOrDefault();
 
                 if (old_info != null)
                 {
@@ -230,6 +243,14 @@ namespace TimeTracker.Windows
                     old_info.DurationInSec = (old_info.TimeTo - old_info.TimeFrom).TotalSeconds;
                     SaveProcInfo(old_info);
                     trackedProcesses.Remove(old_info);
+
+                    for (int k = 1; k < old_infos.Count; k++)
+                    {
+                        old_infos[k].TimeTo = old_info.TimeTo;
+                        old_infos[k].DurationInSec = (old_info.TimeTo - old_infos[k].TimeFrom).TotalSeconds;
+                        SaveProcInfo(old_infos[k]);
+                        trackedProcesses.Remove(old_infos[k]);
+                    }
                 }
             }
 
@@ -269,13 +290,31 @@ namespace TimeTracker.Windows
                     text = new StringBuilder(length.ToInt32());
                     SendMessage(id, WM_GETTEXT, length.ToInt32(), text);
                     info = text.ToString();
-                    info = (new Uri(info)).Host;
+                    try
+                    {
+                        info = (new Uri(info)).Host;
+                    }
+                    catch
+                    {
+                    }
                     break;
                 case "firefox":
                     DdeClient dde = new DdeClient("Firefox", "WWW_GetWindowInfo");
                     dde.Connect();
-                    string url1 = dde.Request("URL", int.MaxValue);
+                    string url1 = String.Empty;
+                    try
+                    {
+                        url1 = dde.Request("URL", int.MaxValue);
+                    }
+                    catch
+                    {
+                        break;
+                    }
                     dde.Disconnect();
+
+                    if (url1.IndexOf('/') < 0)
+                        break;
+
                     info = url1
                         .Replace("\"",String.Empty)
                         .Replace("\0", String.Empty);
@@ -309,14 +348,16 @@ namespace TimeTracker.Windows
         void trayExit_Click(object sender, EventArgs e)
         {
             Running = false;
-            StoreUncommitedActivity(true);
-            ExitThread();
+            TymestTray.Visible = false;
+            //LoginForm.CloseActiveForm();
+            Application.ExitThread();
+            //ExitThread();
         }
 
-        protected override void ExitThreadCore()
-        {
-            TymestTray.Visible = false;
-            base.ExitThreadCore();
-        }
+        //protected override void ExitThreadCore()
+        //{
+        //    TymestTray.Visible = false;
+        //    base.ExitThreadCore();
+        //}
     }
 }

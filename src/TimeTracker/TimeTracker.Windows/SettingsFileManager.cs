@@ -49,12 +49,14 @@ namespace TimeTracker.Windows
             username = String.Empty;
             usertoken = String.Empty;
             machine = String.Empty;
-            deviceid = Guid.Empty;
+            deviceid = null;
+            storeperiod = 60000;
         }
 
         public string username { get; set; }
         public string usertoken { get; set; }
         public string machine { get; set; }
         public Guid? deviceid { get; set; }
+        public int storeperiod { get; set; }
     }
 }
