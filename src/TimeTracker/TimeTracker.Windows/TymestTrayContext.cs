@@ -232,7 +232,8 @@ namespace TimeTracker.Windows
                         p.WindowHandle == p_old.MainWindowHandle
                         && p.ProcessName == p_old.ProcessName
                         && p.TimeTo == DateTime.MaxValue)
-                        .ToList();
+                    .OrderBy(p => p.TimeFrom)
+                    .ToList();
                 
                 ProcessActivity old_info = old_infos
                     .FirstOrDefault();
