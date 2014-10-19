@@ -57,7 +57,8 @@ namespace TimeTracker.RestDataClient.Tests
         [TestMethod]
         public void Test_Login()
         {
-            string apiUrl = "http://localhost:52359/Api";
+            //string apiUrl = "http://localhost:52359/Api";
+            string apiUrl = "http://77.70.26.137/timetracker-v1/Api";
             string authKey = "";
             string computerName = "DOBI_PC";
             int deviceTypeId = (int)DeviceType.Desktop;
