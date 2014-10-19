@@ -22,8 +22,9 @@ namespace TimeTracker.Backend.Controllers
         public IEnumerable<Device> GetDevices()
         {
             Guid user_id = CurrentUserConsumerId.Value;
-            var devices = db.Devices.ForConsumer(user_id);
-            return devices.AsEnumerable();
+            var devices = db.Devices.ForConsumer(user_id).ToList();
+
+            return devices;
         }
 
         // GET api/Device/5
