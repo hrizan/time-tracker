@@ -41,6 +41,11 @@ namespace TimeTracker.Backend.Models
         /// Coeficcient?
         /// </summary>
         public int ProductiveMultiplier { get; set; } //Denormalized - present in ActivityProductCategory
+
+        /// <summary>
+        /// Is Productive
+        /// </summary>
+        public bool IsProductive{ get; set; } //For Easier queries
         
         /// <summary>
         /// Example: Chrome.exe
