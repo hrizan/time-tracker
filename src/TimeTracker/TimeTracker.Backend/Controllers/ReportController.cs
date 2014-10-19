@@ -16,6 +16,7 @@ namespace TimeTracker.Backend.Controllers
         [AuthorizeToken]
         public ProductivityPointsDTO GetProductivityPointsForDate(DateTime forDate)
         {
+            //return new ProductivityPointsDTO() { Distractive = 1, Productive = 2 };
             Guid consumerId = CurrentUserConsumerId.Value;
 
             DateTime dateFrom = forDate.Date;
@@ -34,8 +35,10 @@ namespace TimeTracker.Backend.Controllers
 
             ProductivityPointsDTO result = new ProductivityPointsDTO();
 
-            result.Productive = query.Single(w => w.Positive == true).Sum;
-            result.Distractive = query.Single(w => w.Positive == false).Sum;
+            var positiveQuery = query.SingleOrDefault(w => w.Positive == true);
+            var negativeQuery = query.SingleOrDefault(w => w.Positive == false);
+            result.Productive = positiveQuery != null ? positiveQuery.Sum : 0;
+            result.Distractive = negativeQuery != null ? negativeQuery.Sum : 0;
 
             return result;
         }
@@ -75,6 +78,7 @@ namespace TimeTracker.Backend.Controllers
             return result;
         }
 
+        [AuthorizeToken]
         public List<ProductivityByCategoryDTO> GetProductivityByCategoriesForDate(DateTime forDate)
         {
             Guid consumerId = CurrentUserConsumerId.Value;
@@ -90,7 +94,7 @@ namespace TimeTracker.Backend.Controllers
                 .GroupBy(g => g.CategoryId)
                 .Select(s => new ProductivityByCategoryDTO()
                 {
-                    Label = s.First().Category.Name,
+                    Label = s.FirstOrDefault() == null ? "No category" : s.FirstOrDefault().Category.Name,
                     Value = (int)s.Sum(sum => sum.DurationInSec / 60)//I dont know if this is working
                 }).
                 Where(pbc => pbc.Value >= 1)
@@ -101,6 +105,7 @@ namespace TimeTracker.Backend.Controllers
             return result;
         }
 
+        [AuthorizeToken]
         public List<ProductivityByCategoryByHoursDTO> GetProductivityByCategoriesForDateByHours(DateTime forDate)
         {
             Guid consumerId = CurrentUserConsumerId.Value;
@@ -116,11 +121,12 @@ namespace TimeTracker.Backend.Controllers
                 .GroupBy(g => new { g.CategoryId, g.TimeTo.Hour })
                 .Select(ans => new
                 {
-                    CategoryName = ans.First().Category.Name,
-                    Sum = (int)ans.Sum(sum => sum.DurationInSec),
+                    CategoryName = ans.FirstOrDefault() == null ? "No category" : ans.FirstOrDefault().Category.Name,
+                    Sum = (int)ans.Sum(sum => sum.DurationInSec / 60),
                     Hour = ans.Key.Hour
                 })
                 .Where(pbc => pbc.Sum >= 1)
+                .ToList()
                 .GroupBy(gg => new { gg.CategoryName, gg.Hour })
                 .Select(s => new ProductivityByCategoryByHoursDTO()
                 {
